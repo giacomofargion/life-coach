@@ -10,6 +10,8 @@ export function LogoutButton() {
 
   async function handleLogout() {
     await signOut({ redirect: false });
+    // Refresh router cache to clear any server-side session data
+    router.refresh();
     await router.push('/login');
   }
 

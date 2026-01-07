@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Sparkles } from 'lucide-react';
 import { Activity, Priority, EffortLevel } from '@/lib/types';
 import { ActivityForm } from '@/components/activities/ActivityForm';
 import { ActivityList } from '@/components/activities/ActivityList';
@@ -154,43 +155,52 @@ export default function ActivitiesPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            {!showForm && (
-              <Button
-                onClick={handleNewActivity}
-                variant="outline"
-                className="gap-2 border-dashed"
-              >
-                <Plus className="h-4 w-4" />
-                <span>Add New Practice</span>
-              </Button>
-            )}
             <LogoutButton />
           </div>
         </div>
 
-        {error && (
-          <div className="mb-4 rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
-            {error}
-          </div>
-        )}
+        <AnimatePresence mode="wait">
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mb-4 rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive"
+            >
+              {error}
+            </motion.div>
+          )}
 
-        {showForm ? (
-          <div className="flex justify-center mb-8">
+          {showForm ? (
             <ActivityForm
+              key="form"
               activity={editingActivity}
               onSubmit={handleSubmit}
               onCancel={handleCancel}
+              onDelete={async (id) => {
+                await handleDelete(id);
+                setShowForm(false);
+                setEditingActivity(undefined);
+              }}
               isLoading={submitting}
             />
-          </div>
-        ) : null}
-
-        <ActivityList
-          activities={activities}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          deletingId={deletingId}
-        />
+          ) : (
+            <motion.div
+              key="list"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <ActivityList
+                activities={activities}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                deletingId={deletingId}
+                onAddNew={handleNewActivity}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

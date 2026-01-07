@@ -1,13 +1,17 @@
 'use client';
 
 import { Activity } from '@/lib/types';
+import { motion } from 'framer-motion';
 import { ActivityCard } from './ActivityCard';
+import { Button } from '@/components/ui/button';
+import { Sparkles } from 'lucide-react';
 
 interface ActivityListProps {
   activities: Activity[];
   onEdit: (activity: Activity) => void;
   onDelete: (id: string) => void;
   deletingId?: string | null;
+  onAddNew?: () => void;
 }
 
 export function ActivityList({
@@ -15,6 +19,7 @@ export function ActivityList({
   onEdit,
   onDelete,
   deletingId,
+  onAddNew,
 }: ActivityListProps) {
   if (activities.length === 0) {
     return (
@@ -27,7 +32,7 @@ export function ActivityList({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="grid gap-4">
       {activities.map((activity) => (
         <ActivityCard
           key={activity.id}
@@ -37,6 +42,16 @@ export function ActivityList({
           isDeleting={deletingId === activity.id}
         />
       ))}
+      {onAddNew && (
+        <Button
+          variant="outline"
+          onClick={onAddNew}
+          className="border-dashed h-24 border-primary/20 hover:bg-primary/5 hover:border-primary/40 rounded-2xl text-muted-foreground text-lg transition-all"
+        >
+          <Sparkles className="w-5 h-5 mr-2 text-primary" />
+          Add New Practice
+        </Button>
+      )}
     </div>
   );
 }

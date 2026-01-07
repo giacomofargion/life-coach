@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Sun, Moon, Battery, BatteryLow, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Sun, Moon, ArrowRight } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -50,12 +51,12 @@ export function SessionInput({ onSubmit, isLoading = false }: SessionInputProps)
   }
 
   return (
-    <Card className="w-full max-w-lg border shadow-soft bg-card/95">
-      <CardHeader className="space-y-3 pb-6">
-        <CardTitle className="text-3xl md:text-4xl font-serif font-normal text-foreground">
+    <Card className="w-full max-w-lg border-none shadow-2xl bg-card/80 backdrop-blur-sm">
+      <CardHeader className="space-y-4 pb-6 text-center">
+        <CardTitle className="text-4xl md:text-5xl font-serif font-normal text-primary tracking-tight">
           How is your energy?
         </CardTitle>
-        <CardDescription className="text-base text-muted-foreground">
+        <CardDescription className="text-lg text-muted-foreground max-w-xs mx-auto">
           Be honest. There is no wrong answer. I will meet you where you are.
         </CardDescription>
       </CardHeader>
@@ -63,7 +64,7 @@ export function SessionInput({ onSubmit, isLoading = false }: SessionInputProps)
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-8"
+            className="space-y-4"
           >
             <FormField
               control={form.control}
@@ -78,26 +79,20 @@ export function SessionInput({ onSubmit, isLoading = false }: SessionInputProps)
                       className="flex flex-col space-y-3"
                       disabled={isLoading}
                     >
-                      <div className="flex items-center space-x-3 p-4 rounded-xl border bg-card hover:bg-accent/30 transition-colors cursor-pointer">
-                        <RadioGroupItem value="morning" id="morning" />
-                        <label
-                          htmlFor="morning"
-                          className="text-base font-medium leading-none cursor-pointer flex items-center gap-3 flex-1"
-                        >
-                          <Sun className="h-5 w-5 text-amber-500" />
-                          <span>Morning</span>
-                        </label>
-                      </div>
-                      <div className="flex items-center space-x-3 p-4 rounded-xl border bg-card hover:bg-accent/30 transition-colors cursor-pointer">
-                        <RadioGroupItem value="afternoon" id="afternoon" />
-                        <label
-                          htmlFor="afternoon"
-                          className="text-base font-medium leading-none cursor-pointer flex items-center gap-3 flex-1"
-                        >
-                          <Moon className="h-5 w-5 text-indigo-500" />
-                          <span>Afternoon</span>
-                        </label>
-                      </div>
+                      <EnergyButton
+                        value="morning"
+                        id="morning"
+                        label="Morning"
+                        icon={<Sun className="h-5 w-5 text-amber-500" />}
+                        checked={field.value === 'morning'}
+                      />
+                      <EnergyButton
+                        value="afternoon"
+                        id="afternoon"
+                        label="Afternoon"
+                        icon={<Moon className="h-5 w-5 text-indigo-500" />}
+                        checked={field.value === 'afternoon'}
+                      />
                     </RadioGroup>
                   </FormControl>
                   <FormMessage />
@@ -114,51 +109,96 @@ export function SessionInput({ onSubmit, isLoading = false }: SessionInputProps)
                     <RadioGroup
                       onValueChange={field.onChange}
                       value={field.value}
-                      className="flex flex-col space-y-3"
+                      className="flex flex-col space-y-3 pt-4"
                       disabled={isLoading}
                     >
-                      <div className="flex items-start space-x-3 p-4 rounded-xl border bg-card hover:bg-accent/30 transition-colors cursor-pointer">
-                        <RadioGroupItem value="low" id="low" className="mt-1" />
-                        <label
-                          htmlFor="low"
-                          className="text-base font-medium leading-tight cursor-pointer flex flex-col gap-1 flex-1"
-                        >
-                          <span>Low</span>
-                          <span className="text-sm font-normal text-muted-foreground">I need rest & grounding</span>
-                        </label>
-                      </div>
-                      <div className="flex items-start space-x-3 p-4 rounded-xl border bg-card hover:bg-accent/30 transition-colors cursor-pointer">
-                        <RadioGroupItem value="medium" id="medium" className="mt-1" />
-                        <label
-                          htmlFor="medium"
-                          className="text-base font-medium leading-tight cursor-pointer flex flex-col gap-1 flex-1"
-                        >
-                          <span>Steady</span>
-                          <span className="text-sm font-normal text-muted-foreground">I have some capacity</span>
-                        </label>
-                      </div>
-                      <div className="flex items-start space-x-3 p-4 rounded-xl border bg-card hover:bg-accent/30 transition-colors cursor-pointer">
-                        <RadioGroupItem value="high" id="high" className="mt-1" />
-                        <label
-                          htmlFor="high"
-                          className="text-base font-medium leading-tight cursor-pointer flex flex-col gap-1 flex-1"
-                        >
-                          <span>High</span>
-                          <span className="text-sm font-normal text-muted-foreground">I'm ready to move</span>
-                        </label>
-                      </div>
+                      <EnergyButton
+                        value="low"
+                        id="low"
+                        label="Low"
+                        desc="I need rest & grounding"
+                        checked={field.value === 'low'}
+                      />
+                      <EnergyButton
+                        value="medium"
+                        id="medium"
+                        label="Steady"
+                        desc="I have some capacity"
+                        checked={field.value === 'medium'}
+                      />
+                      <EnergyButton
+                        value="high"
+                        id="high"
+                        label="High"
+                        desc="I'm ready to move"
+                        checked={field.value === 'high'}
+                      />
                     </RadioGroup>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full mt-8" disabled={isLoading} size="lg">
+            <Button
+              type="submit"
+              className="w-full mt-8 rounded-2xl h-14 text-lg shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              disabled={isLoading}
+              size="lg"
+            >
               {isLoading ? 'Getting suggestion...' : 'Continue'}
             </Button>
           </form>
         </Form>
       </CardContent>
     </Card>
+  );
+}
+
+function EnergyButton({
+  value,
+  id,
+  label,
+  desc,
+  icon,
+  checked
+}: {
+  value: string;
+  id: string;
+  label: string;
+  desc?: string;
+  icon?: React.ReactNode;
+  checked: boolean;
+}) {
+  return (
+    <motion.label
+      htmlFor={id}
+      whileHover={{ scale: 1.02, backgroundColor: "hsl(var(--accent))" }}
+      whileTap={{ scale: 0.98 }}
+      className={`group flex items-center justify-between p-6 bg-card hover:bg-white/50 border ${
+        checked ? 'border-primary/40 bg-primary/5' : 'border-transparent hover:border-primary/20'
+      } rounded-2xl shadow-sm hover:shadow-md transition-all text-left w-full cursor-pointer`}
+    >
+      <div className="flex items-center gap-3 flex-1">
+        <RadioGroupItem value={value} id={id} className={desc ? 'mt-1' : ''} />
+        {icon && <div className="flex-shrink-0">{icon}</div>}
+        <div className={desc ? 'flex flex-col gap-1' : ''}>
+          <div className={`font-serif text-xl transition-colors ${
+            checked ? 'text-primary' : 'text-foreground group-hover:text-primary'
+          }`}>
+            {label}
+          </div>
+          {desc && (
+            <div className="text-sm text-muted-foreground">
+              {desc}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className={`w-8 h-8 rounded-full border border-primary/20 flex items-center justify-center transition-opacity ${
+        checked ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+      }`}>
+        <ArrowRight className="w-4 h-4 text-primary" />
+      </div>
+    </motion.label>
   );
 }

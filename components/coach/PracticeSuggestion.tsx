@@ -69,19 +69,27 @@ export function PracticeSuggestion({
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
+      exit={{ opacity: 0, scale: 1.05, filter: 'blur(10px)' }}
+      transition={{ duration: 0.6, type: "spring", bounce: 0.3 }}
       className="w-full max-w-lg"
     >
-      <Card className="border shadow-soft bg-card/95">
-        <CardHeader className="space-y-4 pb-6">
+      <Card className="border-none shadow-2xl bg-card/80 backdrop-blur-sm p-8 md:p-12 text-center space-y-8 rounded-3xl overflow-hidden relative">
+        <div className="absolute top-0 left-0 w-full h-2 bg-primary/20" />
+
+        <CardHeader className="space-y-4 pb-6 p-0">
           {/* Icon Circle */}
-          <div className="flex justify-center mb-2">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Sparkles className="h-8 w-8 text-primary" />
+          <motion.div
+            initial={{ scale: 0, rotate: -20 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ delay: 0.2, type: "spring" }}
+            className="flex justify-center mb-2"
+          >
+            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-primary">
+              <Sparkles className="h-10 w-10" />
             </div>
-          </div>
-          <div className="text-center space-y-2">
-            <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+          </motion.div>
+          <div className="space-y-4">
+            <p className="uppercase tracking-widest text-xs font-semibold text-muted-foreground">
               YOUR PRACTICE
             </p>
             <CardTitle className="text-3xl md:text-4xl font-serif font-normal text-foreground">
@@ -89,7 +97,7 @@ export function PracticeSuggestion({
             </CardTitle>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 p-0">
           {/* Quote */}
           {suggestion.quote && (
             <motion.div
@@ -98,22 +106,18 @@ export function PracticeSuggestion({
               transition={{ duration: 0.5, delay: 0.2 }}
               className="p-4 rounded-lg bg-muted/40"
             >
-              <p className="text-base text-foreground leading-relaxed">"{suggestion.quote}"</p>
+              <p className="text-lg text-foreground leading-relaxed">&ldquo;{suggestion.quote}&rdquo;</p>
             </motion.div>
           )}
 
-          {/* Activity Description */}
+          {/* Activity Badges */}
           {suggestion.mainActivity && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="space-y-2"
             >
-              <p className="text-base text-foreground leading-relaxed">
-                {suggestion.mainActivity.name}
-              </p>
-              <div className="flex flex-wrap gap-2 pt-2">
+              <div className="flex flex-wrap gap-2">
                 <span
                   className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${priorityColors[suggestion.mainActivity.priority]}`}
                 >
@@ -160,24 +164,35 @@ export function PracticeSuggestion({
             transition={{ duration: 0.5, delay: 0.5 }}
             className="space-y-3 pt-4"
           >
+            {error && (
+              <div
+                role="alert"
+                aria-live="assertive"
+                className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive"
+              >
+                {error.message || 'Failed to save session. Please try again.'}
+              </div>
+            )}
             {hasActivities && (
               <Button
                 onClick={handleAccept}
-                className="w-full"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-xl h-14 text-lg transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30"
                 disabled={isLoading}
                 size="lg"
               >
-                {isLoading ? 'Saving...' : "I'm doing this."}
+                {isLoading ? 'Saving...' : "I'm doing this"}
               </Button>
             )}
-            <Button
-              variant="ghost"
-              onClick={onRetry}
+            <button
+              onClick={() => {
+                setError(null);
+                onRetry();
+              }}
               disabled={isLoading}
-              className="w-full underline-offset-4 hover:underline"
+              className="mt-6 text-sm text-muted-foreground hover:text-foreground transition-colors underline decoration-dotted underline-offset-4"
             >
-              Choose differently.
-            </Button>
+              Choose differently
+            </button>
           </motion.div>
         </CardContent>
       </Card>
