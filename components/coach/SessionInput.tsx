@@ -172,15 +172,15 @@ function EnergyButton({
   return (
     <motion.label
       htmlFor={id}
-      whileHover={{ scale: 1.02, backgroundColor: "hsl(var(--accent))" }}
+      whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={`group flex items-center justify-between p-6 bg-card hover:bg-white/50 border ${
+      className={`group flex items-center justify-between p-6 bg-card hover:bg-accent border ${
         checked ? 'border-primary/40 bg-primary/5' : 'border-transparent hover:border-primary/20'
       } rounded-2xl shadow-sm hover:shadow-md transition-all text-left w-full cursor-pointer`}
     >
       <div className="flex items-center gap-3 flex-1">
         <RadioGroupItem value={value} id={id} className={desc ? 'mt-1' : ''} />
-        {icon && <div className="flex-shrink-0">{icon}</div>}
+        {icon && <div className="shrink-0">{icon}</div>}
         <div className={desc ? 'flex flex-col gap-1' : ''}>
           <div className={`font-serif text-xl transition-colors ${
             checked ? 'text-primary' : 'text-foreground group-hover:text-primary'

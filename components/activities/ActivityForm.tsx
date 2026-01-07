@@ -143,7 +143,7 @@ export function ActivityForm({
                                   className="sr-only"
                                 />
                                 <motion.div
-                                  whileHover={{ scale: 1.02, backgroundColor: "hsl(var(--accent))" }}
+                                  whileHover={{ scale: 1.02 }}
                                   whileTap={{ scale: 0.98 }}
                                   className="rounded-xl"
                                 >
@@ -152,7 +152,7 @@ export function ActivityForm({
                                     className={`flex items-center justify-center h-12 rounded-xl border cursor-pointer transition-all capitalize ${
                                       isSelected
                                         ? 'border-primary bg-primary text-primary-foreground font-medium shadow-sm'
-                                        : 'border-primary/10 bg-background/30'
+                                        : 'border-primary/10 bg-background/30 hover:bg-accent hover:border-primary/20'
                                     }`}
                                   >
                                     {level}
@@ -193,7 +193,7 @@ export function ActivityForm({
                                   className="sr-only"
                                 />
                                 <motion.div
-                                  whileHover={{ scale: 1.02, backgroundColor: "hsl(var(--accent))" }}
+                                  whileHover={{ scale: 1.02 }}
                                   whileTap={{ scale: 0.98 }}
                                   className="rounded-xl"
                                 >
@@ -202,7 +202,7 @@ export function ActivityForm({
                                     className={`flex items-center justify-center h-12 rounded-xl border cursor-pointer transition-all capitalize ${
                                       isSelected
                                         ? 'border-primary bg-primary text-primary-foreground font-medium shadow-sm'
-                                        : 'border-primary/10 bg-background/30'
+                                        : 'border-primary/10 bg-background/30 hover:bg-accent hover:border-primary/20'
                                     }`}
                                   >
                                     {level}

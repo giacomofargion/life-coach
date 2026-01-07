@@ -1,7 +1,6 @@
 'use client';
 
 import { Activity } from '@/lib/types';
-import { motion } from 'framer-motion';
 import { ActivityCard } from './ActivityCard';
 import { Button } from '@/components/ui/button';
 import { Sparkles } from 'lucide-react';

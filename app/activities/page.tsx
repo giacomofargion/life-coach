@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Sparkles } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Activity, Priority, EffortLevel } from '@/lib/types';
 import { ActivityForm } from '@/components/activities/ActivityForm';
 import { ActivityList } from '@/components/activities/ActivityList';
