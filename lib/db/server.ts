@@ -7,5 +7,18 @@ export function getDb() {
     throw new Error('DATABASE_URL environment variable is not set');
   }
 
-  return neon(process.env.DATABASE_URL);
+  // Clean up connection string - remove 'psql ' prefix and trailing quotes if present
+  let connectionString = process.env.DATABASE_URL.trim();
+
+  // Remove 'psql ' prefix if present
+  if (connectionString.startsWith('psql ')) {
+    connectionString = connectionString.substring(5);
+  }
+
+  // Remove leading/trailing single quotes if present
+  if (connectionString.startsWith("'") && connectionString.endsWith("'")) {
+    connectionString = connectionString.slice(1, -1);
+  }
+
+  return neon(connectionString);
 }

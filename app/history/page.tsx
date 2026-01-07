@@ -1,0 +1,107 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { Session } from '@/lib/types';
+import { LogoutButton } from '@/components/auth/LogoutButton';
+import { WeeklyCalendar } from '@/components/history/WeeklyCalendar';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+
+export default function HistoryPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    }
+  }, [status, router]);
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      fetchSessions();
+    }
+  }, [status]);
+
+  async function fetchSessions() {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/sessions');
+      if (!response.ok) {
+        if (response.status === 401) {
+          router.push('/login');
+          return;
+        }
+        throw new Error('Failed to fetch sessions');
+      }
+      const data = await response.json();
+      setSessions(data.sessions || []);
+      setError(null);
+    } catch (error) {
+      console.error('Error fetching sessions:', error);
+      setError('Failed to load session history');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (status === 'loading' || loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-muted-foreground">Loading session history...</p>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen p-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">Session History</h1>
+            <p className="text-muted-foreground">
+              View your past coaching sessions
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Link href="/">
+              <Button variant="outline">New Session</Button>
+            </Link>
+            <Link href="/activities">
+              <Button variant="outline">Manage Activities</Button>
+            </Link>
+            <LogoutButton />
+          </div>
+        </div>
+
+        {error && (
+          <div className="mb-4 rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+
+        {sessions.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground mb-4">
+              No sessions yet. Start your first coaching session to see your history here.
+            </p>
+            <Link href="/">
+              <Button>Start a Session</Button>
+            </Link>
+          </div>
+        ) : (
+          <WeeklyCalendar sessions={sessions} />
+        )}
+      </div>
+    </div>
+  );
+}

@@ -6,7 +6,7 @@ import { z } from 'zod';
 const signupSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
-  name: z.string().optional(),
+  name: z.string().min(1, 'Name is required'),
 });
 
 export async function POST(request: NextRequest) {
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     // Create user
     const newUser = await sql`
       INSERT INTO users (email, password_hash, name)
-      VALUES (${email}, ${passwordHash}, ${name || null})
+      VALUES (${email}, ${passwordHash}, ${name})
       RETURNING id, email, name, created_at
     ` as Array<{ id: string; email: string; name: string | null; created_at: Date }>;
 

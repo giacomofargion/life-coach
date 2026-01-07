@@ -29,6 +29,8 @@ export interface Session {
   session_type: SessionType;
   energy_level: EnergyLevel;
   created_at: string;
+  mainActivity?: Activity | null;
+  fillerActivity?: Activity | null;
 }
 
 export interface SessionActivity {
