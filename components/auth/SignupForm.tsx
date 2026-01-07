@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Mail, Lock, User, UserPlus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -86,10 +87,12 @@ export function SignupForm() {
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle>Create an account</CardTitle>
-        <CardDescription>
+    <Card className="w-full max-w-md border shadow-soft bg-card/95">
+      <CardHeader className="space-y-3 pb-6">
+        <CardTitle className="text-3xl md:text-4xl font-serif font-normal text-foreground">
+          Create an account
+        </CardTitle>
+        <CardDescription className="text-base text-muted-foreground">
           Start your mindful coaching journey today
         </CardDescription>
       </CardHeader>
@@ -97,7 +100,7 @@ export function SignupForm() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {error && (
-              <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+              <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
                 {error}
               </div>
             )}
@@ -173,8 +176,9 @@ export function SignupForm() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Creating account...' : 'Create account'}
+            <Button type="submit" className="w-full gap-2" disabled={isLoading}>
+              <UserPlus className="h-4 w-4" />
+              <span>{isLoading ? 'Creating account...' : 'Create account'}</span>
             </Button>
           </form>
         </Form>

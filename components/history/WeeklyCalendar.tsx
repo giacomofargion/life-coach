@@ -22,10 +22,18 @@ const energyLabels = {
 };
 
 const energyColors = {
-  low: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
-  medium: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-  high: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+  low: 'bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-950/30 dark:text-violet-400 dark:border-violet-800',
+  medium: 'bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-950/30 dark:text-sky-400 dark:border-sky-800',
+  high: 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800',
 };
+
+// Helper function to format date as YYYY-MM-DD using local time
+function formatLocalDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 interface WeeklyCalendarProps {
   sessions: Session[];
@@ -55,7 +63,8 @@ export function WeeklyCalendar({ sessions }: WeeklyCalendarProps) {
     const grouped: Record<string, Session[]> = {};
     sessions.forEach((session) => {
       const date = new Date(session.created_at);
-      const dateKey = date.toISOString().split('T')[0];
+      // Use local date for consistent display
+      const dateKey = formatLocalDateKey(date);
       if (!grouped[dateKey]) {
         grouped[dateKey] = [];
       }
@@ -95,22 +104,22 @@ export function WeeklyCalendar({ sessions }: WeeklyCalendarProps) {
   }, [currentWeekStart]);
 
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const monthNames = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
 
   const weekRange = useMemo(() => {
+    const monthNames = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
     const start = weekDays[0];
     const end = weekDays[6];
     const startMonth = monthNames[start.getMonth()];
@@ -168,7 +177,8 @@ export function WeeklyCalendar({ sessions }: WeeklyCalendarProps) {
 
         {/* Calendar Days */}
         {weekDays.map((date, index) => {
-          const dateKey = date.toISOString().split('T')[0];
+          // Use local date for consistent display
+          const dateKey = formatLocalDateKey(date);
           const daySessions = sessionsByDate[dateKey] || [];
           const isToday =
             date.toDateString() === new Date().toDateString();
@@ -181,15 +191,15 @@ export function WeeklyCalendar({ sessions }: WeeklyCalendarProps) {
               transition={{ duration: 0.3, delay: index * 0.05 }}
             >
               <Card
-                className={`min-h-[150px] ${
+                className={`min-h-[150px] border-2 shadow-gentle transition-shadow hover:shadow-md ${
                   isToday
-                    ? 'border-primary border-2 bg-primary/5'
+                    ? 'border-primary bg-primary/5 shadow-md'
                     : ''
                 }`}
               >
                 <CardContent className="p-3">
                   <div
-                    className={`text-sm font-medium mb-2 ${
+                    className={`text-sm font-semibold mb-2 ${
                       isToday ? 'text-primary' : 'text-foreground'
                     }`}
                   >
@@ -209,7 +219,7 @@ export function WeeklyCalendar({ sessions }: WeeklyCalendarProps) {
                           initial={{ opacity: 0, y: -5 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.2 }}
-                          className="text-xs p-1.5 rounded border bg-card"
+                          className="text-xs p-2 rounded-lg border-2 bg-card shadow-sm"
                         >
                           <div className="font-medium truncate">
                             {sessionTypeLabels[session.session_type]}
@@ -228,7 +238,7 @@ export function WeeklyCalendar({ sessions }: WeeklyCalendarProps) {
                             </div>
                           )}
                           <span
-                            className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium mt-1 ${energyColors[session.energy_level]}`}
+                            className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium mt-1.5 ${energyColors[session.energy_level]}`}
                           >
                             {energyLabels[session.energy_level]}
                           </span>

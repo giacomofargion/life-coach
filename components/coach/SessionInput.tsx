@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Sun, Moon, Battery, BatteryLow, Zap } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -49,48 +50,52 @@ export function SessionInput({ onSubmit, isLoading = false }: SessionInputProps)
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle>Start Your Session</CardTitle>
-        <CardDescription>
-          Let's find the right practice for you right now
+    <Card className="w-full max-w-lg border shadow-soft bg-card/95">
+      <CardHeader className="space-y-3 pb-6">
+        <CardTitle className="text-3xl md:text-4xl font-serif font-normal text-foreground">
+          How is your energy?
+        </CardTitle>
+        <CardDescription className="text-base text-muted-foreground">
+          Be honest. There is no wrong answer. I will meet you where you are.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-6"
+            className="space-y-8"
           >
             <FormField
               control={form.control}
               name="session_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>When is this session?</FormLabel>
+                  <FormLabel className="sr-only">When is this session?</FormLabel>
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
                       value={field.value}
-                      className="flex flex-col space-y-1"
+                      className="flex flex-col space-y-3"
                       disabled={isLoading}
                     >
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-3 p-4 rounded-xl border bg-card hover:bg-accent/30 transition-colors cursor-pointer">
                         <RadioGroupItem value="morning" id="morning" />
                         <label
                           htmlFor="morning"
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                          className="text-base font-medium leading-none cursor-pointer flex items-center gap-3 flex-1"
                         >
-                          Morning
+                          <Sun className="h-5 w-5 text-amber-500" />
+                          <span>Morning</span>
                         </label>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-3 p-4 rounded-xl border bg-card hover:bg-accent/30 transition-colors cursor-pointer">
                         <RadioGroupItem value="afternoon" id="afternoon" />
                         <label
                           htmlFor="afternoon"
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                          className="text-base font-medium leading-none cursor-pointer flex items-center gap-3 flex-1"
                         >
-                          Afternoon
+                          <Moon className="h-5 w-5 text-indigo-500" />
+                          <span>Afternoon</span>
                         </label>
                       </div>
                     </RadioGroup>
@@ -104,39 +109,42 @@ export function SessionInput({ onSubmit, isLoading = false }: SessionInputProps)
               name="energy_level"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>How is your energy level?</FormLabel>
+                  <FormLabel className="sr-only">How is your energy level?</FormLabel>
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
                       value={field.value}
-                      className="flex flex-col space-y-1"
+                      className="flex flex-col space-y-3"
                       disabled={isLoading}
                     >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="low" id="low" />
+                      <div className="flex items-start space-x-3 p-4 rounded-xl border bg-card hover:bg-accent/30 transition-colors cursor-pointer">
+                        <RadioGroupItem value="low" id="low" className="mt-1" />
                         <label
                           htmlFor="low"
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                          className="text-base font-medium leading-tight cursor-pointer flex flex-col gap-1 flex-1"
                         >
-                          Low
+                          <span>Low</span>
+                          <span className="text-sm font-normal text-muted-foreground">I need rest & grounding</span>
                         </label>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="medium" id="medium" />
+                      <div className="flex items-start space-x-3 p-4 rounded-xl border bg-card hover:bg-accent/30 transition-colors cursor-pointer">
+                        <RadioGroupItem value="medium" id="medium" className="mt-1" />
                         <label
                           htmlFor="medium"
-                          className="text-sm font-medium leading-none peer-disabled:opacity-70 cursor-pointer"
+                          className="text-base font-medium leading-tight cursor-pointer flex flex-col gap-1 flex-1"
                         >
-                          Medium
+                          <span>Steady</span>
+                          <span className="text-sm font-normal text-muted-foreground">I have some capacity</span>
                         </label>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="high" id="high" />
+                      <div className="flex items-start space-x-3 p-4 rounded-xl border bg-card hover:bg-accent/30 transition-colors cursor-pointer">
+                        <RadioGroupItem value="high" id="high" className="mt-1" />
                         <label
                           htmlFor="high"
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                          className="text-base font-medium leading-tight cursor-pointer flex flex-col gap-1 flex-1"
                         >
-                          High
+                          <span>High</span>
+                          <span className="text-sm font-normal text-muted-foreground">I'm ready to move</span>
                         </label>
                       </div>
                     </RadioGroup>
@@ -145,8 +153,8 @@ export function SessionInput({ onSubmit, isLoading = false }: SessionInputProps)
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Getting suggestion...' : 'Get Practice Suggestion'}
+            <Button type="submit" className="w-full mt-8" disabled={isLoading} size="lg">
+              {isLoading ? 'Getting suggestion...' : 'Continue'}
             </Button>
           </form>
         </Form>

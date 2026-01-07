@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Quote, Sparkles, CheckCircle2, RotateCcw } from 'lucide-react';
 import { CoachSuggestion, Activity } from '@/lib/types';
 import {
   Card,
@@ -31,44 +33,16 @@ const effortLabels = {
 };
 
 const priorityColors = {
-  high: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
-  medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
-  low: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+  high: 'bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-800',
+  medium: 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800',
+  low: 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800',
 };
 
 const effortColors = {
-  high: 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
-  medium: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-  low: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
+  high: 'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-950/30 dark:text-orange-400 dark:border-orange-800',
+  medium: 'bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-950/30 dark:text-sky-400 dark:border-sky-800',
+  low: 'bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-950/30 dark:text-violet-400 dark:border-violet-800',
 };
-
-function ActivityCard({ activity, label }: { activity: Activity; label: string }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="p-4 rounded-lg border bg-card"
-    >
-      <div className="flex items-start justify-between mb-2">
-        <h4 className="font-medium">{label}</h4>
-      </div>
-      <h3 className="text-xl font-semibold mb-3">{activity.name}</h3>
-      <div className="flex flex-wrap gap-2">
-        <span
-          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${priorityColors[activity.priority]}`}
-        >
-          Priority: {priorityLabels[activity.priority]}
-        </span>
-        <span
-          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${effortColors[activity.effort_level]}`}
-        >
-          Effort: {effortLabels[activity.effort_level]}
-        </span>
-      </div>
-    </motion.div>
-  );
-}
 
 export function PracticeSuggestion({
   suggestion,
@@ -76,47 +50,90 @@ export function PracticeSuggestion({
   onRetry,
   isLoading = false,
 }: PracticeSuggestionProps) {
+  const [error, setError] = useState<Error | null>(null);
   const hasActivities = suggestion.mainActivity !== null;
+
+  // Wrapper function to handle async onAccept and catch any errors
+  const handleAccept = async () => {
+    try {
+      setError(null);
+      await onAccept();
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to accept suggestion');
+      console.error('Error accepting practice suggestion:', error);
+      setError(error);
+    }
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
-      className="w-full max-w-2xl"
+      className="w-full max-w-lg"
     >
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Practice Suggestion</CardTitle>
-          <CardDescription>Here's what feels right for you now</CardDescription>
+      <Card className="border shadow-soft bg-card/95">
+        <CardHeader className="space-y-4 pb-6">
+          {/* Icon Circle */}
+          <div className="flex justify-center mb-2">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <Sparkles className="h-8 w-8 text-primary" />
+            </div>
+          </div>
+          <div className="text-center space-y-2">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+              YOUR PRACTICE
+            </p>
+            <CardTitle className="text-3xl md:text-4xl font-serif font-normal text-foreground">
+              {suggestion.mainActivity?.name || 'Rest'}
+            </CardTitle>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Quote */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="p-4 rounded-lg bg-muted/50 border-l-4 border-primary"
-          >
-            <p className="text-lg italic text-foreground">"{suggestion.quote}"</p>
-          </motion.div>
+          {suggestion.quote && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="p-4 rounded-lg bg-muted/40"
+            >
+              <p className="text-base text-foreground leading-relaxed">"{suggestion.quote}"</p>
+            </motion.div>
+          )}
 
-          {/* Activities */}
-          {hasActivities ? (
-            <div className="space-y-4">
-              {suggestion.mainActivity && (
-                <ActivityCard activity={suggestion.mainActivity} label="Main Practice" />
-              )}
-              {suggestion.fillerActivity && (
-                <ActivityCard activity={suggestion.fillerActivity} label="Optional Practice" />
-              )}
-            </div>
-          ) : (
+          {/* Activity Description */}
+          {suggestion.mainActivity && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="space-y-2"
+            >
+              <p className="text-base text-foreground leading-relaxed">
+                {suggestion.mainActivity.name}
+              </p>
+              <div className="flex flex-wrap gap-2 pt-2">
+                <span
+                  className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${priorityColors[suggestion.mainActivity.priority]}`}
+                >
+                  {priorityLabels[suggestion.mainActivity.priority]} Priority
+                </span>
+                <span
+                  className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${effortColors[suggestion.mainActivity.effort_level]}`}
+                >
+                  {effortLabels[suggestion.mainActivity.effort_level]} Effort
+                </span>
+              </div>
+            </motion.div>
+          )}
+
+          {!hasActivities && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="p-4 rounded-lg border text-center"
+              className="p-4 rounded-lg bg-muted/30 text-center"
             >
               <p className="text-muted-foreground">
                 No activities match your current energy level. Consider taking some rest or creating activities that require less effort.
@@ -130,10 +147,9 @@ export function PracticeSuggestion({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
-              className="p-4 rounded-lg bg-accent/50 border"
+              className="p-4 rounded-lg bg-muted/30"
             >
-              <h4 className="font-medium mb-2">Reflection</h4>
-              <p className="text-sm text-muted-foreground">{suggestion.reflectionPrompt}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{suggestion.reflectionPrompt}</p>
             </motion.div>
           )}
 
@@ -142,24 +158,25 @@ export function PracticeSuggestion({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
-            className="flex gap-3"
+            className="space-y-3 pt-4"
           >
             {hasActivities && (
               <Button
-                onClick={onAccept}
-                className="flex-1"
+                onClick={handleAccept}
+                className="w-full"
                 disabled={isLoading}
+                size="lg"
               >
-                {isLoading ? 'Saving...' : 'Accept & Start Session'}
+                {isLoading ? 'Saving...' : "I'm doing this."}
               </Button>
             )}
             <Button
-              variant="outline"
+              variant="ghost"
               onClick={onRetry}
               disabled={isLoading}
-              className={hasActivities ? 'flex-1' : 'w-full'}
+              className="w-full underline-offset-4 hover:underline"
             >
-              Try Again
+              Choose differently.
             </Button>
           </motion.div>
         </CardContent>

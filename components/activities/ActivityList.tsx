@@ -18,8 +18,8 @@ export function ActivityList({
 }: ActivityListProps) {
   if (activities.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">
+      <div className="text-center py-16">
+        <p className="text-muted-foreground text-lg">
           No activities yet. Create your first activity to get started.
         </p>
       </div>
@@ -27,7 +27,7 @@ export function ActivityList({
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="space-y-4">
       {activities.map((activity) => (
         <ActivityCard
           key={activity.id}

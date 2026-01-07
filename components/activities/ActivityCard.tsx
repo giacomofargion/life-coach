@@ -1,6 +1,7 @@
 'use client';
 
 import { Activity } from '@/lib/types';
+import { Edit2, Trash2 } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -19,15 +20,15 @@ interface ActivityCardProps {
 }
 
 const priorityColors = {
-  high: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
-  medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
-  low: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+  high: 'bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-800',
+  medium: 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800',
+  low: 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800',
 };
 
 const effortColors = {
-  high: 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
-  medium: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-  low: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
+  high: 'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-950/30 dark:text-orange-400 dark:border-orange-800',
+  medium: 'bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-950/30 dark:text-sky-400 dark:border-sky-800',
+  low: 'bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-950/30 dark:text-violet-400 dark:border-violet-800',
 };
 
 const priorityLabels = {
@@ -49,42 +50,29 @@ export function ActivityCard({
   isDeleting = false,
 }: ActivityCardProps) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">{activity.name}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-wrap gap-2">
-          <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${priorityColors[activity.priority]}`}
+    <Card className="border shadow-soft bg-card/95 hover:shadow-md transition-shadow">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 space-y-2">
+            <CardTitle className="text-lg font-semibold text-foreground">
+              {activity.name}
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              {effortLabels[activity.effort_level]} Effort • {priorityLabels[activity.priority]} Priority
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onEdit(activity)}
+            disabled={isDeleting}
+            className="border-primary text-primary hover:bg-primary/10"
           >
-            Priority: {priorityLabels[activity.priority]}
-          </span>
-          <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${effortColors[activity.effort_level]}`}
-          >
-            Effort: {effortLabels[activity.effort_level]}
-          </span>
+            <Edit2 className="h-3.5 w-3.5 mr-1.5" />
+            <span>Edit</span>
+          </Button>
         </div>
       </CardContent>
-      <CardFooter className="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onEdit(activity)}
-          disabled={isDeleting}
-        >
-          Edit
-        </Button>
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={() => onDelete(activity.id)}
-          disabled={isDeleting}
-        >
-          {isDeleting ? 'Deleting...' : 'Delete'}
-        </Button>
-      </CardFooter>
     </Card>
   );
 }

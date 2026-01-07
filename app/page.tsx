@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';
+import { Settings, Calendar } from 'lucide-react';
 import { LogoutButton } from '@/components/auth/LogoutButton';
 import { SessionInput } from '@/components/coach/SessionInput';
 import { PracticeSuggestion } from '@/components/coach/PracticeSuggestion';
@@ -116,28 +117,34 @@ export default function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col p-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold">Life Coach App</h1>
-        <div className="flex gap-2">
+    <main className="flex min-h-screen flex-col p-6 md:p-8 bg-gradient-to-br from-[#f5f3f0] via-[#f8f6f3] to-[#f0f2f0]">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-12">
+        <div className="flex-1">
+          <h1 className="text-4xl md:text-5xl font-serif text-foreground mb-3 font-normal">
+            Life Coach App
+          </h1>
+        </div>
+        <div className="flex flex-wrap gap-2">
           <Link href="/activities">
-            <Button variant="outline">Manage Activities</Button>
+            <Button variant="ghost" className="gap-2 text-foreground hover:bg-accent/50">
+              <Settings className="h-4 w-4" />
+              <span>Manage Activities</span>
+            </Button>
           </Link>
           <Link href="/history">
-            <Button variant="outline">Session History</Button>
+            <Button variant="ghost" className="gap-2 text-foreground hover:bg-accent/50">
+              <Calendar className="h-4 w-4" />
+              <span>Session History</span>
+            </Button>
           </Link>
           <LogoutButton />
         </div>
       </div>
-      <div className="max-w-4xl mx-auto w-full space-y-6">
-        <p className="text-muted-foreground">
-          Welcome back, {session.user.email}! Let's find the right practice for
-          you.
-        </p>
+      <div className="max-w-2xl mx-auto w-full">
 
         {error && (
-          <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
-            {error}
+          <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive flex items-center gap-2">
+            <span>{error}</span>
           </div>
         )}
 

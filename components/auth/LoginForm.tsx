@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Mail, Lock, LogIn } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -79,23 +80,25 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle>Welcome back</CardTitle>
-        <CardDescription>
-          Sign in to continue your coaching journey
+    <Card className="w-full max-w-md border shadow-soft bg-card/95">
+      <CardHeader className="space-y-3 pb-6">
+        <CardTitle className="text-3xl md:text-4xl font-serif font-normal text-foreground">
+          Welcome back
+        </CardTitle>
+        <CardDescription className="text-base text-muted-foreground">
+          Continue your journey to mindfulness.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {success && (
-              <div className="rounded-md bg-green-50 dark:bg-green-900/20 p-3 text-sm text-green-600 dark:text-green-400">
+              <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 p-4 text-sm text-emerald-700 dark:text-emerald-400">
                 {success}
               </div>
             )}
             {error && (
-              <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+              <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
                 {error}
               </div>
             )}
@@ -135,8 +138,9 @@ export function LoginForm() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Signing in...' : 'Sign in'}
+            <Button type="submit" className="w-full gap-2" disabled={isLoading}>
+              <LogIn className="h-4 w-4" />
+              <span>{isLoading ? 'Signing in...' : 'Sign in'}</span>
             </Button>
           </form>
         </Form>

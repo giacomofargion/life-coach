@@ -78,10 +78,12 @@ export function ActivityForm({
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle>{activity ? 'Edit Activity' : 'Create Activity'}</CardTitle>
-        <CardDescription>
+    <Card className="w-full max-w-md border shadow-soft bg-card/95">
+      <CardHeader className="space-y-3 pb-6">
+        <CardTitle className="text-3xl font-serif font-normal">
+          {activity ? 'Edit Activity' : 'Create Activity'}
+        </CardTitle>
+        <CardDescription className="text-base">
           {activity
             ? 'Update your activity details'
             : 'Add a new activity to your coaching practice'}
@@ -115,7 +117,7 @@ export function ActivityForm({
                   <FormLabel>Priority</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
                     disabled={isLoading}
                   >
                     <FormControl>
@@ -141,7 +143,7 @@ export function ActivityForm({
                   <FormLabel>Effort Level</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
                     disabled={isLoading}
                   >
                     <FormControl>

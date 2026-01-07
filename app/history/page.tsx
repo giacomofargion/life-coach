@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { Plus, Settings } from 'lucide-react';
 import { Session } from '@/lib/types';
 import { LogoutButton } from '@/components/auth/LogoutButton';
 import { WeeklyCalendar } from '@/components/history/WeeklyCalendar';
@@ -63,35 +64,43 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-screen p-6 md:p-8 bg-gradient-to-br from-[#f5f3f0] via-[#f8f6f3] to-[#f0f2f0]">
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">Session History</h1>
-            <p className="text-muted-foreground">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
+          <div className="flex-1">
+            <h1 className="text-4xl md:text-5xl font-serif font-normal text-foreground mb-3">
+              Session History
+            </h1>
+            <p className="text-base text-muted-foreground">
               View your past coaching sessions
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Link href="/">
-              <Button variant="outline">New Session</Button>
+              <Button variant="outline" className="gap-2">
+                <Plus className="h-4 w-4" />
+                <span>New Session</span>
+              </Button>
             </Link>
             <Link href="/activities">
-              <Button variant="outline">Manage Activities</Button>
+              <Button variant="outline" className="gap-2">
+                <Settings className="h-4 w-4" />
+                <span>Manage Activities</span>
+              </Button>
             </Link>
             <LogoutButton />
           </div>
         </div>
 
         {error && (
-          <div className="mb-4 rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+          <div className="mb-4 rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
             {error}
           </div>
         )}
 
         {sessions.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">
+          <div className="text-center py-16">
+            <p className="text-muted-foreground mb-6 text-lg">
               No sessions yet. Start your first coaching session to see your history here.
             </p>
             <Link href="/">
