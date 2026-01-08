@@ -2,12 +2,11 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Quote, Sparkles, CheckCircle2, RotateCcw } from 'lucide-react';
-import { CoachSuggestion, Activity } from '@/lib/types';
+import { Sparkles } from 'lucide-react';
+import { CoachSuggestion } from '@/lib/types';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -19,30 +18,6 @@ interface PracticeSuggestionProps {
   onRetry: () => void;
   isLoading?: boolean;
 }
-
-const priorityLabels = {
-  high: 'High',
-  medium: 'Medium',
-  low: 'Low',
-};
-
-const effortLabels = {
-  high: 'High',
-  medium: 'Medium',
-  low: 'Low',
-};
-
-const priorityColors = {
-  high: 'bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-800',
-  medium: 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800',
-  low: 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800',
-};
-
-const effortColors = {
-  high: 'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-950/30 dark:text-orange-400 dark:border-orange-800',
-  medium: 'bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-950/30 dark:text-sky-400 dark:border-sky-800',
-  low: 'bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-950/30 dark:text-violet-400 dark:border-violet-800',
-};
 
 export function PracticeSuggestion({
   suggestion,
@@ -98,40 +73,6 @@ export function PracticeSuggestion({
           </div>
         </CardHeader>
         <CardContent className="space-y-6 p-0">
-          {/* Quote */}
-          {suggestion.quote && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="p-4 rounded-lg bg-muted/40"
-            >
-              <p className="text-lg text-foreground leading-relaxed">&ldquo;{suggestion.quote}&rdquo;</p>
-            </motion.div>
-          )}
-
-          {/* Activity Badges */}
-          {suggestion.mainActivity && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
-              <div className="flex flex-wrap gap-2">
-                <span
-                  className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${priorityColors[suggestion.mainActivity.priority]}`}
-                >
-                  {priorityLabels[suggestion.mainActivity.priority]} Priority
-                </span>
-                <span
-                  className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${effortColors[suggestion.mainActivity.effort_level]}`}
-                >
-                  {effortLabels[suggestion.mainActivity.effort_level]} Effort
-                </span>
-              </div>
-            </motion.div>
-          )}
-
           {!hasActivities && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -145,43 +86,33 @@ export function PracticeSuggestion({
             </motion.div>
           )}
 
-          {/* Reflection Prompt */}
-          {suggestion.reflectionPrompt && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="p-4 rounded-lg bg-muted/30"
-            >
-              <p className="text-sm text-muted-foreground leading-relaxed">{suggestion.reflectionPrompt}</p>
-            </motion.div>
-          )}
-
           {/* Actions */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
-            className="space-y-3 pt-4"
+            className="pt-4"
           >
             {error && (
               <div
                 role="alert"
                 aria-live="assertive"
-                className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive"
+                className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive mb-3"
               >
                 {error.message || 'Failed to save session. Please try again.'}
               </div>
             )}
             {hasActivities && (
-              <Button
-                onClick={handleAccept}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-xl h-14 text-lg transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30"
-                disabled={isLoading}
-                size="lg"
-              >
-                {isLoading ? 'Saving...' : "I'm doing this"}
-              </Button>
+              <div className="mb-10">
+                <Button
+                  onClick={handleAccept}
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-xl h-14 text-lg transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30"
+                  disabled={isLoading}
+                  size="lg"
+                >
+                  {isLoading ? 'Saving...' : "I'm doing this"}
+                </Button>
+              </div>
             )}
             <button
               onClick={() => {
@@ -189,7 +120,7 @@ export function PracticeSuggestion({
                 onRetry();
               }}
               disabled={isLoading}
-              className="mt-6 text-sm text-muted-foreground hover:text-foreground transition-colors underline decoration-dotted underline-offset-4"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors underline decoration-dotted underline-offset-4"
             >
               Choose differently
             </button>

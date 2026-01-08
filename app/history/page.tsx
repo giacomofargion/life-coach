@@ -64,7 +64,7 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="min-h-screen p-6 md:p-8 bg-gradient-to-br from-[#f5f3f0] via-[#f8f6f3] to-[#f0f2f0]">
+    <div className="min-h-screen p-6 md:p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
           <div className="flex-1">

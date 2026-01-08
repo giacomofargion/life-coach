@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus } from 'lucide-react';
+import { Plus, Calendar } from 'lucide-react';
 import { Activity, Priority, EffortLevel } from '@/lib/types';
 import { ActivityForm } from '@/components/activities/ActivityForm';
 import { ActivityList } from '@/components/activities/ActivityList';
 import { Button } from '@/components/ui/button';
 import { LogoutButton } from '@/components/auth/LogoutButton';
+import Link from 'next/link';
 
 export default function ActivitiesPage() {
   const router = useRouter();
@@ -143,7 +144,7 @@ export default function ActivitiesPage() {
   }
 
   return (
-    <div className="min-h-screen p-6 md:p-8 bg-gradient-to-br from-[#f5f3f0] via-[#f8f6f3] to-[#f0f2f0]">
+    <div className="min-h-screen p-6 md:p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
           <div className="flex-1">
@@ -155,6 +156,18 @@ export default function ActivitiesPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Link href="/">
+              <Button variant="outline" className="gap-2">
+                <Plus className="h-4 w-4" />
+                <span>New Session</span>
+              </Button>
+            </Link>
+            <Link href="/history">
+              <Button variant="outline" className="gap-2">
+                <Calendar className="h-4 w-4" />
+                <span>Session History</span>
+              </Button>
+            </Link>
             <LogoutButton />
           </div>
         </div>

@@ -71,6 +71,11 @@
     border-color: hsl(var(--border));
   }
   body {
+    background-image: url('/background-img.png');
+    background-size: cover;
+    background-position: top;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     font-feature-settings: "rlig" 1, "calt" 1;

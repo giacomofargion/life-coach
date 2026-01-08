@@ -127,36 +127,37 @@ export default function Home() {
         }}
       />
 
-      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center p-6 md:p-8">
-        <div className="w-full max-w-2xl">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-12"
-          >
-            <div className="flex-1">
-              <h1 className="text-4xl md:text-5xl font-serif text-foreground mb-3 font-normal tracking-tight">
-                Life Coach App
-              </h1>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Link href="/activities">
-                <Button variant="ghost" className="gap-2 text-foreground hover:bg-accent/50 transition-colors">
-                  <Activity className="h-4 w-4" />
-                  <span>Manage Activities</span>
-                </Button>
-              </Link>
-              <Link href="/history">
-                <Button variant="ghost" className="gap-2 text-foreground hover:bg-accent/50 transition-colors">
-                  <Calendar className="h-4 w-4" />
-                  <span>Session History</span>
-                </Button>
-              </Link>
-              <LogoutButton />
-            </div>
-          </motion.div>
+      {/* Header - positioned at top of page */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 md:p-8"
+      >
+        <div className="flex-1">
+          <h1 className="text-4xl md:text-5xl font-serif text-foreground mb-3 font-normal tracking-tight">
+            Life Coach App
+          </h1>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/activities">
+            <Button variant="ghost" className="gap-2 text-foreground hover:bg-accent/50 transition-colors">
+              <Activity className="h-4 w-4" />
+              <span>Manage Activities</span>
+            </Button>
+          </Link>
+          <Link href="/history">
+            <Button variant="ghost" className="gap-2 text-foreground hover:bg-accent/50 transition-colors">
+              <Calendar className="h-4 w-4" />
+              <span>Session History</span>
+            </Button>
+          </Link>
+          <LogoutButton />
+        </div>
+      </motion.div>
 
+      <div className="relative z-10 flex flex-col items-center p-6 md:p-8">
+        <div className="w-full max-w-2xl">
           <AnimatePresence mode="wait">
             {error && (
               <motion.div
