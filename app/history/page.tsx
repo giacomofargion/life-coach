@@ -65,7 +65,7 @@ export default function HistoryPage() {
 
   return (
     <div className="min-h-screen p-6 md:p-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
           <div className="flex-1">
             <h1 className="text-4xl md:text-5xl font-serif font-normal text-foreground mb-3">

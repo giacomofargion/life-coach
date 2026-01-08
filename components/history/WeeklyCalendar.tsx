@@ -15,16 +15,16 @@ const sessionTypeLabels = {
   afternoon: 'Afternoon',
 };
 
-const energyLabels = {
+const priorityLabels = {
   low: 'Low',
   medium: 'Medium',
   high: 'High',
 };
 
-const energyColors = {
-  low: 'bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-950/30 dark:text-violet-400 dark:border-violet-800',
-  medium: 'bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-950/30 dark:text-sky-400 dark:border-sky-800',
-  high: 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800',
+const priorityColors = {
+  low: 'bg-violet-50 text-black border border-violet-200 dark:bg-violet-950/30 dark:text-black dark:border-violet-800',
+  medium: 'bg-sky-50 text-black border border-sky-200 dark:bg-sky-950/30 dark:text-black dark:border-sky-800',
+  high: 'bg-emerald-50 text-black border border-emerald-200 dark:bg-emerald-950/30 dark:text-black dark:border-emerald-800',
 };
 
 // Helper function to format date as YYYY-MM-DD using local time
@@ -164,12 +164,12 @@ export function WeeklyCalendar({ sessions }: WeeklyCalendarProps) {
       </div>
 
       {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4">
         {/* Day Headers */}
         {dayNames.map((dayName, index) => (
           <div
             key={dayName}
-            className="text-center text-sm font-medium text-muted-foreground pb-2"
+            className="text-center text-base font-medium text-muted-foreground pb-2"
           >
             {dayName}
           </div>
@@ -191,21 +191,21 @@ export function WeeklyCalendar({ sessions }: WeeklyCalendarProps) {
               transition={{ duration: 0.3, delay: index * 0.05 }}
             >
               <Card
-                className={`min-h-[150px] border-2 shadow-gentle transition-shadow hover:shadow-md ${
+                className={`min-h-[220px] border-2 shadow-gentle transition-shadow hover:shadow-md ${
                   isToday
                     ? 'border-primary bg-primary/5 shadow-md'
                     : ''
                 }`}
               >
-                <CardContent className="p-3">
+                <CardContent className="p-4">
                   <div
-                    className={`text-sm font-semibold mb-2 ${
+                    className={`text-xl font-semibold mb-3 ${
                       isToday ? 'text-primary' : 'text-foreground'
                     }`}
                   >
                     {date.getDate()}
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="space-y-2.5">
                     {daySessions.map((session) => {
                       const sessionDate = new Date(session.created_at);
                       const time = sessionDate.toLocaleTimeString('en-US', {
@@ -213,35 +213,51 @@ export function WeeklyCalendar({ sessions }: WeeklyCalendarProps) {
                         minute: '2-digit',
                       });
 
+                      const formatDuration = (minutes: number | null | undefined): string => {
+                        if (!minutes || minutes === 0) return '';
+                        if (minutes < 60) return `${minutes} min`;
+                        const hours = Math.floor(minutes / 60);
+                        const mins = minutes % 60;
+                        if (mins === 0) return `${hours} hr`;
+                        return `${hours} hr ${mins} min`;
+                      };
+
+                      const priority = session.mainActivity?.priority || session.fillerActivity?.priority;
+
                       return (
                         <motion.div
                           key={session.id}
                           initial={{ opacity: 0, y: -5 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.2 }}
-                          className="text-xs p-2 rounded-lg border-2 bg-card shadow-sm"
+                          className="text-sm p-3 rounded-lg border-2 bg-card shadow-sm"
                         >
-                          <div className="font-medium truncate">
+                          <div className="font-medium truncate text-base">
                             {sessionTypeLabels[session.session_type]}
                           </div>
-                          <div className="text-muted-foreground text-[10px]">
+                          <div className="text-muted-foreground text-sm mt-1">
                             {time}
+                            {session.duration_minutes && (
+                              <span className="ml-1">• {formatDuration(session.duration_minutes)}</span>
+                            )}
                           </div>
                           {session.mainActivity && (
-                            <div className="mt-1 text-[10px] font-medium truncate">
+                            <div className="mt-2 text-sm font-medium truncate">
                               {session.mainActivity.name}
                             </div>
                           )}
                           {session.fillerActivity && (
-                            <div className="mt-0.5 text-[10px] text-muted-foreground truncate">
+                            <div className="mt-1 text-sm text-muted-foreground truncate">
                               + {session.fillerActivity.name}
                             </div>
                           )}
-                          <span
-                            className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium mt-1.5 ${energyColors[session.energy_level]}`}
-                          >
-                            {energyLabels[session.energy_level]}
-                          </span>
+                          {priority && (
+                            <span
+                              className={`inline-flex items-center rounded-full px-2.5 py-1 text-sm font-medium mt-2 ${priorityColors[priority]}`}
+                            >
+                              {priorityLabels[priority]}
+                            </span>
+                          )}
                         </motion.div>
                       );
                     })}

@@ -3,29 +3,39 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from 'next-auth/react';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Activity, Calendar } from 'lucide-react';
 import { LogoutButton } from '@/components/auth/LogoutButton';
 import { SessionInput } from '@/components/coach/SessionInput';
 import { PracticeSuggestion } from '@/components/coach/PracticeSuggestion';
+import { TimerDisplay } from '@/components/coach/TimerDisplay';
 import { CoachSuggestion, SessionType, EnergyLevel } from '@/lib/types';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 export default function Home() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const [suggestion, setSuggestion] = useState<CoachSuggestion | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savingSession, setSavingSession] = useState(false);
   const [sessionType, setSessionType] = useState<SessionType | null>(null);
   const [energyLevel, setEnergyLevel] = useState<EnergyLevel | null>(null);
+  const [isTimerActive, setIsTimerActive] = useState(false);
+  const [timerStartTime, setTimerStartTime] = useState<Date | null>(null);
+  const [selectedDurationMinutes, setSelectedDurationMinutes] = useState<number | null>(null);
 
+  // Restore sessionType from sessionStorage after login
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      redirect('/login');
+    if (status === 'authenticated' && session) {
+      const storedSessionType = sessionStorage.getItem('pendingSessionType');
+      if (storedSessionType && (storedSessionType === 'morning' || storedSessionType === 'afternoon')) {
+        setSessionType(storedSessionType as SessionType);
+        sessionStorage.removeItem('pendingSessionType');
+      }
     }
-  }, [status]);
+  }, [status, session]);
 
   if (status === 'loading') {
     return (
@@ -35,14 +45,24 @@ export default function Home() {
     );
   }
 
-  if (!session) {
-    return null;
+  // Handle session type selection for unauthenticated users
+  async function handleSessionTypeSelect(data: { session_type: SessionType; energy_level?: EnergyLevel }) {
+    if (!session) {
+      // Store selection and redirect to login
+      sessionStorage.setItem('pendingSessionType', data.session_type);
+      router.push('/login');
+      return;
+    }
+    // If authenticated, this shouldn't be called (should use handleSessionSubmit instead)
   }
 
   async function handleSessionSubmit(data: {
     session_type: SessionType;
-    energy_level: EnergyLevel;
+    energy_level?: EnergyLevel;
   }) {
+    if (!data.energy_level) {
+      return; // Should not happen for authenticated users
+    }
     setLoading(true);
     setError(null);
     setSuggestion(null);
@@ -72,7 +92,61 @@ export default function Home() {
     }
   }
 
-  async function handleAcceptSuggestion() {
+  async function handleAcceptSuggestion(durationMinutes: number) {
+    if (!suggestion || !sessionType || !energyLevel) {
+      return;
+    }
+
+    // Start the timer instead of immediately saving
+    setSelectedDurationMinutes(durationMinutes);
+    setTimerStartTime(new Date());
+    setIsTimerActive(true);
+    setError(null);
+  }
+
+  async function handleTimerComplete() {
+    if (!suggestion || !sessionType || !energyLevel || !timerStartTime || !selectedDurationMinutes) {
+      return;
+    }
+
+    setSavingSession(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          session_type: sessionType,
+          energy_level: energyLevel,
+          main_activity_id: suggestion.mainActivity?.id,
+          filler_activity_id: suggestion.fillerActivity?.id,
+          duration_minutes: selectedDurationMinutes,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save session');
+      }
+
+      // Reset after successful save
+      setSuggestion(null);
+      setSessionType(null);
+      setEnergyLevel(null);
+      setIsTimerActive(false);
+      setTimerStartTime(null);
+      setSelectedDurationMinutes(null);
+    } catch (error) {
+      console.error('Error saving session:', error);
+      setError('Failed to save session. Please try again.');
+    } finally {
+      setSavingSession(false);
+    }
+  }
+
+  async function handleTimerExit(actualDurationMinutes: number) {
     if (!suggestion || !sessionType || !energyLevel) {
       return;
     }
@@ -91,6 +165,7 @@ export default function Home() {
           energy_level: energyLevel,
           main_activity_id: suggestion.mainActivity?.id,
           filler_activity_id: suggestion.fillerActivity?.id,
+          duration_minutes: actualDurationMinutes,
         }),
       });
 
@@ -102,6 +177,9 @@ export default function Home() {
       setSuggestion(null);
       setSessionType(null);
       setEnergyLevel(null);
+      setIsTimerActive(false);
+      setTimerStartTime(null);
+      setSelectedDurationMinutes(null);
     } catch (error) {
       console.error('Error saving session:', error);
       setError('Failed to save session. Please try again.');
@@ -118,7 +196,7 @@ export default function Home() {
   }
 
   return (
-    <main className="relative min-h-screen w-full overflow-hidden bg-background text-foreground selection:bg-primary/20">
+    <main className="relative min-h-screen w-full overflow-hidden text-foreground selection:bg-primary/20">
       {/* Subtle Grain Texture Overlay */}
       <div
         className="fixed inset-0 z-0 pointer-events-none opacity-[0.03] mix-blend-overlay"
@@ -140,19 +218,23 @@ export default function Home() {
           </h1>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link href="/activities">
-            <Button variant="ghost" className="gap-2 text-foreground hover:bg-accent/50 transition-colors">
-              <Activity className="h-4 w-4" />
-              <span>Manage Activities</span>
-            </Button>
-          </Link>
-          <Link href="/history">
-            <Button variant="ghost" className="gap-2 text-foreground hover:bg-accent/50 transition-colors">
-              <Calendar className="h-4 w-4" />
-              <span>Session History</span>
-            </Button>
-          </Link>
-          <LogoutButton />
+          {session && (
+            <>
+              <Link href="/activities">
+                <Button variant="ghost" className="gap-2 text-foreground hover:bg-accent/50 transition-colors">
+                  <Activity className="h-4 w-4" />
+                  <span>Manage Activities</span>
+                </Button>
+              </Link>
+              <Link href="/history">
+                <Button variant="ghost" className="gap-2 text-foreground hover:bg-accent/50 transition-colors">
+                  <Calendar className="h-4 w-4" />
+                  <span>Session History</span>
+                </Button>
+              </Link>
+              <LogoutButton />
+            </>
+          )}
         </div>
       </motion.div>
 
@@ -181,8 +263,26 @@ export default function Home() {
                 className="flex justify-center"
               >
                 <SessionInput
-                  onSubmit={handleSessionSubmit}
+                  onSubmit={session ? handleSessionSubmit : handleSessionTypeSelect}
                   isLoading={loading}
+                  isAuthenticated={!!session}
+                  initialSessionType={sessionType}
+                />
+              </motion.div>
+            ) : isTimerActive && selectedDurationMinutes ? (
+              <motion.div
+                key="timer-display"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.6, type: "spring", bounce: 0.2 }}
+                className="flex justify-center"
+              >
+                <TimerDisplay
+                  durationMinutes={selectedDurationMinutes}
+                  activityName={suggestion.mainActivity?.name || 'Rest'}
+                  onComplete={handleTimerComplete}
+                  onExit={handleTimerExit}
                 />
               </motion.div>
             ) : (
