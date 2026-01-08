@@ -11,10 +11,11 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { DurationSelector } from '@/components/coach/DurationSelector';
 
 interface PracticeSuggestionProps {
   suggestion: CoachSuggestion;
-  onAccept: () => Promise<void>;
+  onAccept: (durationMinutes: number) => Promise<void>;
   onRetry: () => void;
   isLoading?: boolean;
 }
@@ -26,13 +27,14 @@ export function PracticeSuggestion({
   isLoading = false,
 }: PracticeSuggestionProps) {
   const [error, setError] = useState<Error | null>(null);
+  const [durationMinutes, setDurationMinutes] = useState<number>(15);
   const hasActivities = suggestion.mainActivity !== null;
 
   // Wrapper function to handle async onAccept and catch any errors
   const handleAccept = async () => {
     try {
       setError(null);
-      await onAccept();
+      await onAccept(durationMinutes);
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to accept suggestion');
       console.error('Error accepting practice suggestion:', error);
@@ -86,6 +88,18 @@ export function PracticeSuggestion({
             </motion.div>
           )}
 
+          {/* Duration Selector - only show if has activities */}
+          {hasActivities && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.4 }}
+              className="py-4"
+            >
+              <DurationSelector onDurationChange={setDurationMinutes} />
+            </motion.div>
+          )}
+
           {/* Actions */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -107,7 +121,7 @@ export function PracticeSuggestion({
                 <Button
                   onClick={handleAccept}
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-xl h-14 text-lg transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30"
-                  disabled={isLoading}
+                  disabled={isLoading || durationMinutes < 1}
                   size="lg"
                 >
                   {isLoading ? 'Saving...' : "I'm doing this"}

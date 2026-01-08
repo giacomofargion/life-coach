@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sun, Moon, ChevronLeft } from 'lucide-react';
 import {
@@ -15,18 +15,32 @@ import { Button } from '@/components/ui/button';
 import { SessionType, EnergyLevel } from '@/lib/types';
 
 interface SessionInputProps {
-  onSubmit: (data: { session_type: SessionType; energy_level: EnergyLevel }) => Promise<void>;
+  onSubmit: (data: { session_type: SessionType; energy_level?: EnergyLevel }) => Promise<void>;
   isLoading?: boolean;
+  isAuthenticated?: boolean;
+  initialSessionType?: SessionType | null;
 }
 
-export function SessionInput({ onSubmit, isLoading = false }: SessionInputProps) {
-  const [step, setStep] = useState<1 | 2>(1);
-  const [sessionType, setSessionType] = useState<SessionType | null>(null);
+export function SessionInput({
+  onSubmit,
+  isLoading = false,
+  isAuthenticated = true,
+  initialSessionType = null
+}: SessionInputProps) {
+  const [step, setStep] = useState<1 | 2>(initialSessionType ? 2 : 1);
+  const [sessionType, setSessionType] = useState<SessionType | null>(initialSessionType);
   const [energyLevel, setEnergyLevel] = useState<EnergyLevel | null>(null);
 
   function handleSessionTypeSelect(value: SessionType) {
     setSessionType(value);
-    // Automatically advance to step 2
+
+    if (!isAuthenticated) {
+      // For unauthenticated users, call onSubmit which will redirect to login
+      onSubmit({ session_type: value });
+      return;
+    }
+
+    // For authenticated users, automatically advance to step 2
     setTimeout(() => setStep(2), 150);
   }
 
@@ -39,6 +53,14 @@ export function SessionInput({ onSubmit, isLoading = false }: SessionInputProps)
       await onSubmit({ session_type: sessionType, energy_level: energyLevel });
     }
   }
+
+  // Update step when initialSessionType changes (after login)
+  useEffect(() => {
+    if (initialSessionType && isAuthenticated) {
+      setSessionType(initialSessionType);
+      setStep(2);
+    }
+  }, [initialSessionType, isAuthenticated]);
 
   function handleBack() {
     setStep(1);

@@ -8,6 +8,7 @@ const sessionSchema = z.object({
   energy_level: z.enum(['low', 'medium', 'high']),
   main_activity_id: z.string().uuid().optional().nullable(),
   filler_activity_id: z.string().uuid().optional().nullable(),
+  duration_minutes: z.number().int().positive().nullable().optional(),
 });
 
 // POST /api/sessions - Create a new session
@@ -15,21 +16,22 @@ export async function POST(request: NextRequest) {
   try {
     const userId = await requireAuth();
     const body = await request.json();
-    const { session_type, energy_level, main_activity_id, filler_activity_id } =
+    const { session_type, energy_level, main_activity_id, filler_activity_id, duration_minutes } =
       sessionSchema.parse(body);
 
     const sql = getDb();
 
     // Create the session
     const newSession = await sql`
-      INSERT INTO sessions (user_id, session_type, energy_level)
-      VALUES (${userId}, ${session_type}, ${energy_level})
-      RETURNING id, user_id, session_type, energy_level, created_at
+      INSERT INTO sessions (user_id, session_type, energy_level, duration_minutes)
+      VALUES (${userId}, ${session_type}, ${energy_level}, ${duration_minutes})
+      RETURNING id, user_id, session_type, energy_level, duration_minutes, created_at
     ` as Array<{
       id: string;
       user_id: string;
       session_type: 'morning' | 'afternoon';
       energy_level: 'low' | 'medium' | 'high';
+      duration_minutes: number | null;
       created_at: Date;
     }>;
 
@@ -138,7 +140,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch sessions
     const sessions = await sql`
-      SELECT id, user_id, session_type, energy_level, created_at
+      SELECT id, user_id, session_type, energy_level, duration_minutes, created_at
       FROM sessions
       WHERE user_id = ${userId}
       ORDER BY created_at DESC
@@ -147,6 +149,7 @@ export async function GET(request: NextRequest) {
       user_id: string;
       session_type: 'morning' | 'afternoon';
       energy_level: 'low' | 'medium' | 'high';
+      duration_minutes: number | null;
       created_at: Date;
     }>;
 

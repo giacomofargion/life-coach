@@ -3,11 +3,31 @@ import { NextResponse } from 'next/server';
 
 export default withAuth(
   function middleware(req) {
+    // Allow root path without authentication
+    if (req.nextUrl.pathname === '/') {
+      return NextResponse.next();
+    }
     return NextResponse.next();
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token,
+      authorized: ({ token, req }) => {
+        const pathname = req.nextUrl.pathname;
+
+        // Allow root path without authentication
+        if (pathname === '/') {
+          return true;
+        }
+
+        // Allow static files from public folder (images, fonts, etc.)
+        const staticFileExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico', '.woff', '.woff2', '.ttf', '.eot'];
+        const isStaticFile = staticFileExtensions.some(ext => pathname.toLowerCase().endsWith(ext));
+        if (isStaticFile) {
+          return true;
+        }
+
+        return !!token;
+      },
     },
     pages: {
       signIn: '/login',
@@ -22,9 +42,9 @@ export const config = {
      * - api/auth (NextAuth routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
+     * - Static file extensions (images, fonts, etc. from public folder)
+     * - login, signup (public pages)
      */
-    '/((?!api/auth|_next/static|_next/image|favicon.ico|login|signup).*)',
+    '/((?!api/auth|_next/static|_next/image|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.svg|.*\\.webp|.*\\.ico|.*\\.woff|.*\\.woff2|.*\\.ttf|.*\\.eot|login|signup).*)',
   ],
 };
