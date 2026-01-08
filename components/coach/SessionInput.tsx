@@ -223,10 +223,13 @@ function EnergyButton({
           </div>
         </div>
       </div>
-      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-        checked ? 'border-primary bg-primary' : 'border-muted-foreground/30'
-      }`}>
-        {checked && <div className="w-2 h-2 rounded-full bg-primary-foreground" />}
+      <div
+        className="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all"
+        style={{
+          borderColor: checked ? "rgb(48, 54, 52)" : 'hsl(var(--muted-foreground) / 0.3)',
+          backgroundColor: checked ? "rgb(48, 54, 52)" : 'transparent'
+        }}
+      >
       </div>
     </motion.label>
   );
