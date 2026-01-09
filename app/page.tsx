@@ -119,7 +119,6 @@ export default function Home() {
           session_type: sessionType,
           energy_level: energyLevel,
           main_activity_id: suggestion.mainActivity?.id,
-          filler_activity_id: suggestion.fillerActivity?.id,
           duration_minutes: selectedDurationMinutes,
         }),
       });
@@ -161,7 +160,6 @@ export default function Home() {
           session_type: sessionType,
           energy_level: energyLevel,
           main_activity_id: suggestion.mainActivity?.id,
-          filler_activity_id: suggestion.fillerActivity?.id,
           duration_minutes: actualDurationMinutes,
         }),
       });

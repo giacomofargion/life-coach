@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Session } from '@/lib/types';
 import { WeeklyCalendar } from '@/components/history/WeeklyCalendar';
+import { WeeklyReview } from '@/components/history/WeeklyReview';
 import { NavHeader } from '@/components/navigation/NavHeader';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -15,6 +16,17 @@ export default function HistoryPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showWeeklyReview, setShowWeeklyReview] = useState(false);
+
+  // Calculate current week start (Sunday)
+  const currentWeekStart = useMemo(() => {
+    const today = new Date();
+    const day = today.getDay();
+    const diff = today.getDate() - day; // Get Sunday of current week
+    const sunday = new Date(today.setDate(diff));
+    sunday.setHours(0, 0, 0, 0);
+    return sunday;
+  }, []);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -66,10 +78,20 @@ export default function HistoryPage() {
     <div className="min-h-screen p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-12">
-          <NavHeader
-            title="Session History"
-            subtitle="View your past coaching sessions"
-          />
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <NavHeader
+              title="Session History"
+              subtitle="View your past coaching sessions"
+            />
+            {sessions.length > 0 && (
+              <Button
+                onClick={() => setShowWeeklyReview(true)}
+                className="w-full sm:w-auto"
+              >
+                Weekly Review
+              </Button>
+            )}
+          </div>
         </div>
 
         {error && (
@@ -91,6 +113,14 @@ export default function HistoryPage() {
           <WeeklyCalendar sessions={sessions} />
         )}
       </div>
+
+      {showWeeklyReview && (
+        <WeeklyReview
+          sessions={sessions}
+          weekStart={currentWeekStart}
+          onClose={() => setShowWeeklyReview(false)}
+        />
+      )}
     </div>
   );
 }

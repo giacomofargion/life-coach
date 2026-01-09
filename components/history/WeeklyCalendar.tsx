@@ -246,7 +246,7 @@ export function WeeklyCalendar({ sessions }: WeeklyCalendarProps) {
                         return `${hours} hr ${mins} min`;
                       };
 
-                      const priority = session.mainActivity?.priority || session.fillerActivity?.priority;
+                      const priority = session.mainActivity?.priority;
 
                       return (
                         <motion.div
@@ -268,11 +268,6 @@ export function WeeklyCalendar({ sessions }: WeeklyCalendarProps) {
                           {session.mainActivity && (
                             <div className="mt-2 text-xs sm:text-sm font-medium truncate">
                               {session.mainActivity.name}
-                            </div>
-                          )}
-                          {session.fillerActivity && (
-                            <div className="mt-1 text-xs sm:text-sm text-muted-foreground truncate">
-                              + {session.fillerActivity.name}
                             </div>
                           )}
                           {priority && (

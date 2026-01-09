@@ -7,7 +7,6 @@ const sessionSchema = z.object({
   session_type: z.enum(['morning', 'afternoon']),
   energy_level: z.enum(['low', 'medium', 'high']),
   main_activity_id: z.string().uuid().optional().nullable(),
-  filler_activity_id: z.string().uuid().optional().nullable(),
   duration_minutes: z.number().int().positive().nullable().optional(),
 });
 
@@ -16,7 +15,7 @@ export async function POST(request: NextRequest) {
   try {
     const userId = await requireAuth();
     const body = await request.json();
-    const { session_type, energy_level, main_activity_id, filler_activity_id, duration_minutes } =
+    const { session_type, energy_level, main_activity_id, duration_minutes } =
       sessionSchema.parse(body);
 
     const sql = getDb();
@@ -69,32 +68,6 @@ export async function POST(request: NextRequest) {
 
         if (mainActivity && mainActivity.length > 0) {
           sessionActivities.push(mainActivity[0]);
-        }
-      }
-    }
-
-    if (filler_activity_id && filler_activity_id !== main_activity_id) {
-      // Verify the activity belongs to the user
-      const activity = await sql`
-        SELECT id FROM activities
-        WHERE id = ${filler_activity_id} AND user_id = ${userId}
-      ` as Array<{ id: string }>;
-
-      if (activity && activity.length > 0) {
-        const fillerActivity = await sql`
-          INSERT INTO session_activities (session_id, activity_id, is_main, is_filler)
-          VALUES (${sessionId}, ${filler_activity_id}, false, true)
-          RETURNING id, session_id, activity_id, is_main, is_filler
-        ` as Array<{
-          id: string;
-          session_id: string;
-          activity_id: string;
-          is_main: boolean;
-          is_filler: boolean;
-        }>;
-
-        if (fillerActivity && fillerActivity.length > 0) {
-          sessionActivities.push(fillerActivity[0]);
         }
       }
     }
@@ -169,7 +142,7 @@ export async function GET(request: NextRequest) {
           FROM session_activities sa
           INNER JOIN activities a ON sa.activity_id = a.id
           WHERE sa.session_id = ${session.id}
-          ORDER BY sa.is_main DESC, sa.is_filler DESC
+          ORDER BY sa.is_main DESC
         ` as Array<{
           id: string;
           session_id: string;
@@ -182,7 +155,6 @@ export async function GET(request: NextRequest) {
         }>;
 
         const mainActivity = sessionActivities.find((sa) => sa.is_main);
-        const fillerActivity = sessionActivities.find((sa) => sa.is_filler);
 
         return {
           ...session,
@@ -195,14 +167,7 @@ export async function GET(request: NextRequest) {
                 effort_level: mainActivity.effort_level,
               }
             : null,
-          fillerActivity: fillerActivity
-            ? {
-                id: fillerActivity.activity_id,
-                name: fillerActivity.activity_name,
-                priority: fillerActivity.priority,
-                effort_level: fillerActivity.effort_level,
-              }
-            : null,
+          fillerActivity: null,
         };
       })
     );

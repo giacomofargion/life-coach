@@ -43,18 +43,12 @@ export function selectActivities(
   // - Only suggest Low Priority ("luxury") tasks if energy allows and no higher priority task is more suitable
 
   let mainActivity: Activity | null = null
-  let fillerActivity: Activity | null = null
 
   if (energyLevel === 'high' || energyLevel === 'medium') {
     // For medium/high energy, prioritize high priority tasks
     const highPriorityActivities = sortedActivities.filter(a => a.priority === 'high')
     if (highPriorityActivities.length > 0) {
       mainActivity = highPriorityActivities[0]
-      // Look for a filler (lower priority or lower effort)
-      fillerActivity = sortedActivities.find(
-        a => a.id !== mainActivity!.id &&
-        (a.priority === 'medium' || a.priority === 'low' || a.effort_level === 'low')
-      ) || null
     } else {
       // No high priority available, take best available
       mainActivity = sortedActivities[0]
@@ -62,10 +56,6 @@ export function selectActivities(
   } else {
     // Low energy: can handle any priority, but still prefer high when available
     mainActivity = sortedActivities[0]
-    // For low energy, filler should be very low effort
-    fillerActivity = sortedActivities.find(
-      a => a.id !== mainActivity!.id && a.effort_level === 'low'
-    ) || null
   }
 
   // Get appropriate quote and reflection
@@ -74,7 +64,7 @@ export function selectActivities(
 
   return {
     mainActivity,
-    fillerActivity,
+    fillerActivity: null,
     quote,
     reflectionPrompt
   }
