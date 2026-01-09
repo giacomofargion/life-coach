@@ -4,14 +4,11 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Activity, Calendar } from 'lucide-react';
-import { LogoutButton } from '@/components/auth/LogoutButton';
 import { SessionInput } from '@/components/coach/SessionInput';
 import { PracticeSuggestion } from '@/components/coach/PracticeSuggestion';
 import { TimerDisplay } from '@/components/coach/TimerDisplay';
 import { CoachSuggestion, SessionType, EnergyLevel } from '@/lib/types';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { NavHeader } from '@/components/navigation/NavHeader';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -210,32 +207,9 @@ export default function Home() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 md:p-8"
+        className="relative z-10 p-6 md:p-8"
       >
-        <div className="flex-1">
-          <h1 className="text-4xl md:text-5xl font-serif text-foreground mb-3 font-normal tracking-tight">
-            Life Coach App
-          </h1>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {session && (
-            <>
-              <Link href="/activities">
-                <Button variant="ghost" className="gap-2 text-foreground hover:bg-accent/50 transition-colors">
-                  <Activity className="h-4 w-4" />
-                  <span>Manage Activities</span>
-                </Button>
-              </Link>
-              <Link href="/history">
-                <Button variant="ghost" className="gap-2 text-foreground hover:bg-accent/50 transition-colors">
-                  <Calendar className="h-4 w-4" />
-                  <span>Session History</span>
-                </Button>
-              </Link>
-              <LogoutButton />
-            </>
-          )}
-        </div>
+        {session && <NavHeader title="Life Coach App" />}
       </motion.div>
 
       <div className="relative z-10 flex flex-col items-center p-6 md:p-8">

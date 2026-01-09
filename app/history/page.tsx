@@ -3,10 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Plus, Settings } from 'lucide-react';
 import { Session } from '@/lib/types';
-import { LogoutButton } from '@/components/auth/LogoutButton';
 import { WeeklyCalendar } from '@/components/history/WeeklyCalendar';
+import { NavHeader } from '@/components/navigation/NavHeader';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -66,30 +65,11 @@ export default function HistoryPage() {
   return (
     <div className="min-h-screen p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
-          <div className="flex-1">
-            <h1 className="text-4xl md:text-5xl font-serif font-normal text-foreground mb-3">
-              Session History
-            </h1>
-            <p className="text-base text-muted-foreground">
-              View your past coaching sessions
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link href="/">
-              <Button variant="outline" className="gap-2">
-                <Plus className="h-4 w-4" />
-                <span>New Session</span>
-              </Button>
-            </Link>
-            <Link href="/activities">
-              <Button variant="outline" className="gap-2">
-                <Settings className="h-4 w-4" />
-                <span>Manage Activities</span>
-              </Button>
-            </Link>
-            <LogoutButton />
-          </div>
+        <div className="mb-12">
+          <NavHeader
+            title="Session History"
+            subtitle="View your past coaching sessions"
+          />
         </div>
 
         {error && (
