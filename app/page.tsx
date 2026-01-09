@@ -214,7 +214,7 @@ export default function Home() {
       >
         <div className="flex-1">
           <h1 className="text-4xl md:text-5xl font-serif text-foreground mb-3 font-normal tracking-tight">
-            Life Coach App
+            {session?.user?.name ? `${session.user.name}'s Life Coach` : 'Life Coach'}
           </h1>
         </div>
         <div className="flex flex-wrap gap-2">
