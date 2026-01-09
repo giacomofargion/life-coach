@@ -195,7 +195,7 @@ function SessionTimeButton({
       htmlFor={id}
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.97 }}
-      className={`group flex flex-col items-center justify-center p-8 bg-card hover:bg-accent border ${
+      className={`group flex flex-col items-center justify-center p-8 bg-card hover:bg-accent border-2 ${
         checked ? 'border-primary bg-primary/5 shadow-md' : 'border-transparent hover:border-primary/20'
       } rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer`}
     >
@@ -228,7 +228,7 @@ function EnergyButton({
       htmlFor={id}
       whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.99 }}
-      className={`group flex items-center justify-between px-5 py-4 bg-card hover:bg-accent border ${
+      className={`group flex items-center justify-between px-5 py-4 bg-card hover:bg-accent border-2 ${
         checked ? 'border-primary bg-primary/5 shadow-md' : 'border-transparent hover:border-primary/20'
       } rounded-2xl shadow-sm hover:shadow-md transition-all text-left w-full cursor-pointer`}
     >

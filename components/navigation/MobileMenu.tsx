@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation';
-import { Menu, X, Plus, Activity, Calendar, LogOut } from 'lucide-react';
+import { Menu, X, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
+import { navItems } from '@/components/navigation/navItems';
 
 export function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,6 +20,24 @@ export function MobileMenu() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Lock body scroll when menu is open
+  useEffect(() => {
+    if (isOpen) {
+      // Save the original overflow value
+      const originalOverflow = document.body.style.overflow;
+      // Lock scroll
+      document.body.style.overflow = 'hidden';
+
+      // Cleanup function to restore original overflow
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    } else {
+      // Restore scroll when menu closes
+      document.body.style.overflow = '';
+    }
+  }, [isOpen]);
 
   async function handleLogout() {
     await signOut({ redirect: false });
@@ -66,35 +85,20 @@ export function MobileMenu() {
             className="fixed top-4 right-4 z-[9999] w-[calc(100vw-2rem)] max-w-sm bg-card border-2 rounded-xl shadow-2xl lg:hidden"
           >
             <nav className="p-5 flex flex-col gap-8">
-              <Link href="/" onClick={handleLinkClick}>
-                <Button
-                  variant={pathname === '/' ? 'default' : 'ghost'}
-                  className="w-full justify-start gap-3 h-12 text-base"
-                >
-                  <Plus className="h-5 w-5" />
-                  <span>New Session</span>
-                </Button>
-              </Link>
-
-              <Link href="/activities" onClick={handleLinkClick}>
-                <Button
-                  variant={pathname === '/activities' ? 'default' : 'ghost'}
-                  className="w-full justify-start gap-3 h-12 text-base"
-                >
-                  <Activity className="h-5 w-5" />
-                  <span>Manage Activities</span>
-                </Button>
-              </Link>
-
-              <Link href="/history" onClick={handleLinkClick}>
-                <Button
-                  variant={pathname === '/history' ? 'default' : 'ghost'}
-                  className="w-full justify-start gap-3 h-12 text-base"
-                >
-                  <Calendar className="h-5 w-5" />
-                  <span>Session History</span>
-                </Button>
-              </Link>
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link key={item.href} href={item.href} onClick={handleLinkClick}>
+                    <Button
+                      variant={pathname === item.href ? 'default' : 'ghost'}
+                      className="w-full justify-start gap-3 h-12 text-base"
+                    >
+                      <Icon className="h-5 w-5" />
+                      <span>{item.label}</span>
+                    </Button>
+                  </Link>
+                );
+              })}
 
               <div className="pt-2 mt-2 border-t">
                 <Button
