@@ -40,7 +40,7 @@ export function ActivityCard({
     >
       <Card
         onClick={() => !isDeleting && onEdit(activity)}
-        className="p-6 bg-card/50 backdrop-blur-sm border-none flex items-center justify-between cursor-pointer group hover:bg-white/60 transition-all shadow-sm hover:shadow-md rounded-2xl"
+        className="p-6 bg-card/50 backdrop-blur-sm border-2 flex items-center justify-between cursor-pointer group hover:bg-white/60 transition-all shadow-sm hover:shadow-md rounded-2xl"
       >
         <div className="space-y-1">
           <h3 className="text-xl font-serif text-foreground group-hover:text-primary transition-colors">
