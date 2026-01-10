@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { navItems } from '@/components/navigation/navItems';
+import { NudgeButton } from '@/components/nudges/NudgeButton';
+import { useNudgeCount } from '@/components/nudges/useNudgeCount';
 
 export function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,6 +19,7 @@ export function MobileMenu() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const router = useRouter();
   const pathname = usePathname();
+  const { activeCount } = useNudgeCount();
 
   // Ensure portal only renders on client
   useEffect(() => {
@@ -98,6 +101,12 @@ export function MobileMenu() {
                   </Link>
                 );
               })}
+
+              <NudgeButton
+                activeCount={activeCount}
+                className="w-full justify-start gap-3 h-12 text-base"
+                onModalOpen={handleLinkClick}
+              />
 
               <div className="pt-2 mt-2 border-t">
                 <Button

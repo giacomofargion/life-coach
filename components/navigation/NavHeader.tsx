@@ -7,6 +7,8 @@ import { LogoutButton } from '@/components/auth/LogoutButton';
 import { MobileMenu } from '@/components/navigation/MobileMenu';
 import { usePathname } from 'next/navigation';
 import { navItems } from '@/components/navigation/navItems';
+import { NudgeButton } from '@/components/nudges/NudgeButton';
+import { useNudgeCount } from '@/components/nudges/useNudgeCount';
 
 interface NavHeaderProps {
   title: string;
@@ -16,6 +18,7 @@ interface NavHeaderProps {
 export function NavHeader({ title, subtitle }: NavHeaderProps) {
   const { data: session } = useSession();
   const pathname = usePathname();
+  const { activeCount } = useNudgeCount();
 
   if (!session) {
     return null;
@@ -56,6 +59,7 @@ export function NavHeader({ title, subtitle }: NavHeaderProps) {
               </Link>
             );
           })}
+          <NudgeButton activeCount={activeCount} />
           <LogoutButton />
         </div>
 
