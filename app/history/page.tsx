@@ -23,7 +23,8 @@ export default function HistoryPage() {
     const today = new Date();
     const day = today.getDay();
     const diff = today.getDate() - day; // Get Sunday of current week
-    const sunday = new Date(today.setDate(diff));
+    const sunday = new Date(today);
+    sunday.setDate(diff);
     sunday.setHours(0, 0, 0, 0);
     return sunday;
   }, []);

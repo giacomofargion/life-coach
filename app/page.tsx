@@ -201,14 +201,17 @@ export default function Home() {
       />
 
       {/* Header - positioned at top of page */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="relative z-10 p-6 md:p-8"
-      >
-        {session && <NavHeader title="Life Coach App" />}
-      </motion.div>
+      <div className="relative z-10 pt-8 pb-6 pl-6 pr-8 md:pt-12 md:pb-8 md:pl-8 md:pr-12">
+        {session && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          >
+            <NavHeader title="Life Coach App" />
+          </motion.div>
+        )}
+      </div>
 
       <div className="relative z-10 flex flex-col items-center p-6 md:p-8">
         <div className="w-full max-w-2xl">
