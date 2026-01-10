@@ -84,7 +84,7 @@ export function PracticeSuggestion({
               className="p-4 rounded-lg bg-muted/30 text-center"
             >
               <p className="text-muted-foreground">
-                No activities match your current energy level. Consider taking some rest or creating activities that require less effort.
+                No activities match your current energy level. Consider taking some rest or creating activities.
               </p>
             </motion.div>
           )}
@@ -148,7 +148,7 @@ export function PracticeSuggestion({
                 onRetry();
               }}
               disabled={isLoading}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors underline decoration-dotted underline-offset-4"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors underline decoration-dotted underline-offset-4 cursor-pointer"
             >
               Choose differently
             </button>

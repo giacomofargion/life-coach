@@ -142,11 +142,23 @@ export default function Home() {
     }
   }
 
-  async function handleTimerExit(actualDurationMinutes: number) {
+  async function handleTimerExit(actualDurationMinutes: number, shouldSave: boolean) {
     if (!suggestion || !sessionType || !energyLevel) {
       return;
     }
 
+    // If user chose not to save, just reset and exit
+    if (!shouldSave) {
+      setSuggestion(null);
+      setSessionType(null);
+      setEnergyLevel(null);
+      setIsTimerActive(false);
+      setTimerStartTime(null);
+      setSelectedDurationMinutes(null);
+      return;
+    }
+
+    // Otherwise, save the session
     setSavingSession(true);
     setError(null);
 
