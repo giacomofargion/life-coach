@@ -73,7 +73,6 @@ export function TimerDisplay({
 
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
-    isMountedRef.current = true;
 
     async function fetchQuote() {
       try {
