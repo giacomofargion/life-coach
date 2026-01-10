@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, User, UserPlus } from 'lucide-react';
+import { signIn } from 'next-auth/react';
+import { UserPlus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -78,8 +79,23 @@ export function SignupForm() {
         return;
       }
 
-      // Redirect to login page on success
-      router.push('/login?registered=true');
+      // Automatically sign in the user after successful signup
+      const signInResult = await signIn('credentials', {
+        email: values.email,
+        password: values.password,
+        redirect: false,
+      });
+
+      if (signInResult?.error) {
+        // If auto-login fails, redirect to login page with error
+        setError('Account created but sign in failed. Please try signing in manually.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Redirect to homepage on successful signup and login
+      router.push('/');
+      router.refresh();
     } catch (error) {
       setError('An unexpected error occurred. Please try again.');
       setIsLoading(false);

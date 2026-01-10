@@ -93,7 +93,7 @@ export function LoginForm() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {success && (
-              <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 p-4 text-sm text-emerald-700 dark:text-emerald-400">
+              <div className="rounded-lg bg-emerald-600 dark:bg-emerald-700 border border-emerald-700 dark:border-emerald-600 p-4 text-sm text-white font-medium">
                 {success}
               </div>
             )}
