@@ -9,12 +9,25 @@ import { Nudge } from '@/lib/types';
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verify this is being called by Vercel Cron (optional but recommended)
-    // In production, Vercel adds authorization headers automatically
-    // You can also set CRON_SECRET for extra security
+    // Enforce CRON_SECRET in production - fail fast if missing
+    const isProduction =
+      process.env.NODE_ENV === 'production' ||
+      process.env.VERCEL_ENV === 'production';
+
+    if (isProduction && !process.env.CRON_SECRET) {
+      console.error('CRON_SECRET is required in production but is not set');
+      return NextResponse.json(
+        { error: 'Server configuration error: CRON_SECRET is required in production' },
+        { status: 500 }
+      );
+    }
+
+    // Validate authorization header if CRON_SECRET is set
     if (process.env.CRON_SECRET) {
       const authHeader = request.headers.get('authorization');
-      if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      const expectedAuth = `Bearer ${process.env.CRON_SECRET}`;
+
+      if (!authHeader || authHeader !== expectedAuth) {
         return NextResponse.json(
           { error: 'Unauthorized' },
           { status: 401 }

@@ -3,9 +3,9 @@ import { getDb } from '@/lib/db/server';
 import { verifyCompletionUrl } from '@/lib/nudges/email';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // GET /api/nudges/[id]/complete - Email completion endpoint
@@ -14,7 +14,7 @@ export async function GET(
   { params }: RouteParams
 ) {
   try {
-    const nudgeId = params.id;
+    const { id: nudgeId } = await params;
     const { searchParams } = new URL(request.url);
     const signature = searchParams.get('sig');
     const expires = searchParams.get('expires');

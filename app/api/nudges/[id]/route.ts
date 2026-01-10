@@ -3,9 +3,9 @@ import { getDb } from '@/lib/db/server';
 import { requireAuth } from '@/lib/auth-helpers';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // PATCH /api/nudges/[id] - Update nudge (mark as complete)
@@ -15,7 +15,7 @@ export async function PATCH(
 ) {
   try {
     const userId = await requireAuth();
-    const nudgeId = params.id;
+    const { id: nudgeId } = await params;
 
     const sql = getDb();
 

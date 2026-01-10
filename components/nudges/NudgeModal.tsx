@@ -139,7 +139,7 @@ export function NudgeModal({
                 Nudge set!
               </DialogTitle>
               <DialogDescription className="text-center text-muted-foreground">
-                You'll receive a gentle reminder tomorrow at 8am.
+                You&apos;ll receive a gentle reminder tomorrow at 8am.
               </DialogDescription>
             </motion.div>
           )}

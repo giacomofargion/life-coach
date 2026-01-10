@@ -12,11 +12,11 @@ const activitySchema = z.object({
 // PUT /api/activities/[id] - Update an activity
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userId = await requireAuth();
-    const activityId = params.id;
+    const { id: activityId } = await params;
     const body = await request.json();
     const { name, priority, effort_level } = activitySchema.parse(body);
 
@@ -88,11 +88,11 @@ export async function PUT(
 // DELETE /api/activities/[id] - Delete an activity
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userId = await requireAuth();
-    const activityId = params.id;
+    const { id: activityId } = await params;
 
     const sql = getDb();
 

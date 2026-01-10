@@ -14,6 +14,7 @@ interface NudgeButtonProps {
 export function NudgeButton({ activeCount = 0, className, onModalOpen }: NudgeButtonProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [shouldCloseMenu, setShouldCloseMenu] = useState(false);
 
   async function handleSubmit(content: string) {
     setIsLoading(true);
@@ -30,6 +31,9 @@ export function NudgeButton({ activeCount = 0, className, onModalOpen }: NudgeBu
         throw new Error('Failed to create nudge');
       }
 
+      // Mark that we should close the mobile menu when modal closes after success
+      setShouldCloseMenu(true);
+
       // Refresh the active count by triggering a page refresh or refetch
       // For now, we'll just close the modal and let the parent refresh
       window.dispatchEvent(new CustomEvent('nudgeCreated'));
@@ -41,10 +45,23 @@ export function NudgeButton({ activeCount = 0, className, onModalOpen }: NudgeBu
     }
   }
 
-  function handleOpen() {
+  function handleOpen(e: React.MouseEvent) {
+    e.stopPropagation(); // Prevent event from bubbling to parent elements
     setOpen(true);
-    if (onModalOpen) {
-      onModalOpen();
+    setShouldCloseMenu(false); // Reset flag when opening modal
+    // Don't close mobile menu immediately - keep it open so NudgeButton stays mounted
+    // The modal will render on top with higher z-index (10001)
+  }
+
+  function handleModalClose(open: boolean) {
+    setOpen(open);
+    // Only close mobile menu if the modal closed after successful submission
+    // Don't close menu when user clicks X button
+    if (!open && shouldCloseMenu && onModalOpen) {
+      setTimeout(() => {
+        onModalOpen();
+      }, 300);
+      setShouldCloseMenu(false); // Reset flag
     }
   }
 
@@ -66,7 +83,7 @@ export function NudgeButton({ activeCount = 0, className, onModalOpen }: NudgeBu
 
       <NudgeModal
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={handleModalClose}
         onSubmit={handleSubmit}
         isLoading={isLoading}
       />

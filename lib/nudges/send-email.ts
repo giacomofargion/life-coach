@@ -2,6 +2,21 @@ import { Resend } from 'resend';
 import { Nudge } from '@/lib/types';
 import { generateCompletionUrl } from './email';
 
+/**
+ * Escape HTML special characters to prevent XSS attacks
+ * Converts characters that have special meaning in HTML to their entity equivalents
+ */
+function escapeHtml(text: string): string {
+  const map: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  };
+  return text.replace(/[&<>"']/g, (char) => map[char]);
+}
+
 function getResendClient(): Resend {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
@@ -64,16 +79,25 @@ function createEmailTemplate(
   nudgeItems: Array<{ content: string; completionUrl: string }>,
   baseUrl: string
 ): string {
+  // Escape display name to prevent XSS
+  const safeDisplayName = escapeHtml(displayName);
+
   const nudgeList = nudgeItems
     .map(
-      (item, index) => `
+      (item, index) => {
+        // Escape user-generated content to prevent XSS
+        const safeContent = escapeHtml(item.content);
+        // URL-encode the completion URL for href attribute safety
+        const safeCompletionUrl = encodeURI(item.completionUrl);
+
+        return `
       <tr>
         <td style="padding: 16px 0; border-bottom: 1px solid #e5e7eb;">
           <p style="margin: 0 0 12px 0; font-size: 16px; color: #374151; line-height: 1.6;">
-            ${item.content}
+            ${safeContent}
           </p>
           <a
-            href="${item.completionUrl}"
+            href="${safeCompletionUrl}"
             style="
               display: inline-block;
               padding: 10px 20px;
@@ -89,7 +113,8 @@ function createEmailTemplate(
           </a>
         </td>
       </tr>
-    `
+    `;
+      }
     )
     .join('');
 
@@ -118,7 +143,7 @@ function createEmailTemplate(
           <tr>
             <td style="padding: 32px 40px;">
               <p style="margin: 0 0 24px 0; font-size: 16px; color: #6b7280; line-height: 1.6;">
-                Hi ${displayName},
+                Hi ${safeDisplayName},
               </p>
               <p style="margin: 0 0 32px 0; font-size: 16px; color: #6b7280; line-height: 1.6;">
                 Sometimes we need a gentle reminder. Here${nudgeItems.length > 1 ? ' are' : "'s"} what you asked me to nudge you about:

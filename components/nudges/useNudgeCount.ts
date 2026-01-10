@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 
 export function useNudgeCount() {
@@ -8,7 +8,7 @@ export function useNudgeCount() {
   const [activeCount, setActiveCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
-  async function fetchCount() {
+  const fetchCount = useCallback(async () => {
     if (status !== 'authenticated' || !session) {
       setActiveCount(0);
       return;
@@ -26,7 +26,7 @@ export function useNudgeCount() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [status, session, setActiveCount, setIsLoading]);
 
   useEffect(() => {
     fetchCount();
@@ -41,7 +41,7 @@ export function useNudgeCount() {
     return () => {
       window.removeEventListener('nudgeCreated', handleNudgeCreated);
     };
-  }, [status, session]);
+  }, [fetchCount]);
 
   return { activeCount, isLoading, refetch: fetchCount };
 }
