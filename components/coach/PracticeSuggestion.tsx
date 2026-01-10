@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { Sparkles } from 'lucide-react';
 import { CoachSuggestion } from '@/lib/types';
 import {
@@ -126,6 +127,19 @@ export function PracticeSuggestion({
                 >
                   {isLoading ? 'Saving...' : "I'm doing this"}
                 </Button>
+              </div>
+            )}
+            {!hasActivities && (
+              <div className="mb-6">
+                <Link href="/activities">
+                  <Button
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-xl h-14 text-lg transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30"
+                    size="lg"
+                  >
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    Create Activities
+                  </Button>
+                </Link>
               </div>
             )}
             <button

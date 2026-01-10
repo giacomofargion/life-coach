@@ -22,10 +22,17 @@ export function ActivityList({
 }: ActivityListProps) {
   if (activities.length === 0) {
     return (
-      <div className="text-center py-16">
-        <p className="text-muted-foreground text-lg">
-          No activities yet. Create your first activity to get started.
-        </p>
+      <div className="grid gap-4">
+        {onAddNew && (
+          <Button
+            variant="outline"
+            onClick={onAddNew}
+            className="border-dashed h-24 border-primary/20 hover:bg-primary/5 hover:border-primary/40 rounded-2xl text-muted-foreground text-lg transition-all"
+          >
+            <Sparkles className="w-5 h-5 mr-2 text-primary" />
+            Add New Practice
+          </Button>
+        )}
       </div>
     );
   }
