@@ -73,6 +73,8 @@ export function TimerDisplay({
 
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
+    // Ensure ref is true for this effect run (handles React Strict Mode)
+    isMountedRef.current = true;
 
     async function fetchQuote() {
       try {
