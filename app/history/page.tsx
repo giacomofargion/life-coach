@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Session } from '@/lib/types';
@@ -115,13 +116,15 @@ export default function HistoryPage() {
         )}
       </div>
 
-      {showWeeklyReview && (
-        <WeeklyReview
-          sessions={sessions}
-          weekStart={currentWeekStart}
-          onClose={() => setShowWeeklyReview(false)}
-        />
-      )}
+      <AnimatePresence>
+        {showWeeklyReview && (
+          <WeeklyReview
+            sessions={sessions}
+            weekStart={currentWeekStart}
+            onClose={() => setShowWeeklyReview(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

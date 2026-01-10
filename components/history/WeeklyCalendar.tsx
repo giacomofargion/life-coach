@@ -27,6 +27,21 @@ const priorityColors = {
   high: 'bg-emerald-50 text-black border border-emerald-200 dark:bg-emerald-950/30 dark:text-black dark:border-emerald-800',
 };
 
+const sessionTypeOrder = {
+  morning: 0,
+  afternoon: 1,
+} as const;
+
+// Comparator function to sort sessions by type (morning first) then by time (earlier first)
+function sortSessions(a: Session, b: Session): number {
+  // First, sort by session_type (morning = 0, afternoon = 1)
+  const typeDiff = sessionTypeOrder[a.session_type] - sessionTypeOrder[b.session_type];
+  if (typeDiff !== 0) return typeDiff;
+
+  // If same type, sort by time (earlier first)
+  return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+}
+
 // Helper function to format date as YYYY-MM-DD using local time
 function formatLocalDateKey(date: Date): string {
   const year = date.getFullYear();
@@ -221,15 +236,7 @@ export function WeeklyCalendar({ sessions }: WeeklyCalendarProps) {
                   </div>
                   <div className="space-y-2 sm:space-y-2.5">
                     {[...daySessions]
-                      .sort((a, b) => {
-                        // First, sort by session_type (morning = 0, afternoon = 1)
-                        const typeOrder = { morning: 0, afternoon: 1 };
-                        const typeDiff = typeOrder[a.session_type] - typeOrder[b.session_type];
-                        if (typeDiff !== 0) return typeDiff;
-
-                        // If same type, sort by time (earlier first)
-                        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-                      })
+                      .sort(sortSessions)
                       .map((session) => {
                       const sessionDate = new Date(session.created_at);
                       const time = sessionDate.toLocaleTimeString('en-US', {

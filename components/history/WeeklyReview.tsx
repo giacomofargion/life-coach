@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { X, TrendingUp } from 'lucide-react';
 import { Session, Activity, Priority } from '@/lib/types';
 import {
@@ -72,14 +72,6 @@ export function WeeklyReview({ sessions, weekStart, onClose }: WeeklyReviewProps
       document.body.style.overflow = originalOverflow;
     };
   }, []);
-
-  // Calculate week end (Saturday)
-  const weekEnd = useMemo(() => {
-    const end = new Date(weekStart);
-    end.setDate(end.getDate() + 6);
-    end.setHours(23, 59, 59, 999);
-    return end;
-  }, [weekStart]);
 
   // Filter sessions to current calendar week
   const weekSessions = useMemo(() => {
@@ -185,22 +177,21 @@ export function WeeklyReview({ sessions, weekStart, onClose }: WeeklyReviewProps
   const hasSessions = weekSessions.length > 0;
 
   return (
-    <AnimatePresence>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
+      onClick={onClose}
+    >
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
-        onClick={onClose}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.3, type: 'spring', bounce: 0.2 }}
+        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
       >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.3, type: 'spring', bounce: 0.2 }}
-          className="w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-          onClick={(e) => e.stopPropagation()}
-        >
           <Card className="border-none shadow-2xl bg-card/80 backdrop-blur-sm p-8 md:p-12 text-center space-y-8 rounded-3xl overflow-hidden relative">
             <div className="absolute top-0 left-0 w-full h-2 bg-primary/20" />
 
@@ -368,6 +359,5 @@ export function WeeklyReview({ sessions, weekStart, onClose }: WeeklyReviewProps
           </Card>
         </motion.div>
       </motion.div>
-    </AnimatePresence>
   );
 }
