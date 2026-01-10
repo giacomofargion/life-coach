@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Plus, Settings } from 'lucide-react';
 import { Session } from '@/lib/types';
-import { LogoutButton } from '@/components/auth/LogoutButton';
 import { WeeklyCalendar } from '@/components/history/WeeklyCalendar';
+import { WeeklyReview } from '@/components/history/WeeklyReview';
+import { NavHeader } from '@/components/navigation/NavHeader';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -16,6 +17,18 @@ export default function HistoryPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showWeeklyReview, setShowWeeklyReview] = useState(false);
+
+  // Calculate current week start (Sunday)
+  const currentWeekStart = useMemo(() => {
+    const today = new Date();
+    const day = today.getDay();
+    const diff = today.getDate() - day; // Get Sunday of current week
+    const sunday = new Date(today);
+    sunday.setDate(diff);
+    sunday.setHours(0, 0, 0, 0);
+    return sunday;
+  }, []);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -66,29 +79,20 @@ export default function HistoryPage() {
   return (
     <div className="min-h-screen p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
-          <div className="flex-1">
-            <h1 className="text-4xl md:text-5xl font-serif font-normal text-foreground mb-3">
-              Session History
-            </h1>
-            <p className="text-base text-muted-foreground">
-              View your past coaching sessions
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link href="/">
-              <Button variant="outline" className="gap-2">
-                <Plus className="h-4 w-4" />
-                <span>New Session</span>
+        <div className="mb-12">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <NavHeader
+              title="Session History"
+              subtitle="View your past coaching sessions"
+            />
+            {sessions.length > 0 && (
+              <Button
+                onClick={() => setShowWeeklyReview(true)}
+                className="w-full sm:w-auto"
+              >
+                Weekly Review
               </Button>
-            </Link>
-            <Link href="/activities">
-              <Button variant="outline" className="gap-2">
-                <Settings className="h-4 w-4" />
-                <span>Manage Activities</span>
-              </Button>
-            </Link>
-            <LogoutButton />
+            )}
           </div>
         </div>
 
@@ -111,6 +115,16 @@ export default function HistoryPage() {
           <WeeklyCalendar sessions={sessions} />
         )}
       </div>
+
+      <AnimatePresence>
+        {showWeeklyReview && (
+          <WeeklyReview
+            sessions={sessions}
+            weekStart={currentWeekStart}
+            onClose={() => setShowWeeklyReview(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -27,6 +27,21 @@ const priorityColors = {
   high: 'bg-emerald-50 text-black border border-emerald-200 dark:bg-emerald-950/30 dark:text-black dark:border-emerald-800',
 };
 
+const sessionTypeOrder = {
+  morning: 0,
+  afternoon: 1,
+} as const;
+
+// Comparator function to sort sessions by type (morning first) then by time (earlier first)
+function sortSessions(a: Session, b: Session): number {
+  // First, sort by session_type (morning = 0, afternoon = 1)
+  const typeDiff = sessionTypeOrder[a.session_type] - sessionTypeOrder[b.session_type];
+  if (typeDiff !== 0) return typeDiff;
+
+  // If same type, sort by time (earlier first)
+  return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+}
+
 // Helper function to format date as YYYY-MM-DD using local time
 function formatLocalDateKey(date: Date): string {
   const year = date.getFullYear();
@@ -136,13 +151,14 @@ export function WeeklyCalendar({ sessions }: WeeklyCalendarProps) {
   return (
     <div className="space-y-4">
       {/* Week Navigation */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
           <Button
             variant="outline"
             size="icon"
             onClick={goToPreviousWeek}
             aria-label="Previous week"
+            className="flex-shrink-0"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -151,25 +167,32 @@ export function WeeklyCalendar({ sessions }: WeeklyCalendarProps) {
             size="icon"
             onClick={goToNextWeek}
             aria-label="Next week"
+            className="flex-shrink-0"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <h2 className="text-xl font-semibold px-4 min-w-[300px]">{weekRange}</h2>
+          <h2 className="text-lg sm:text-xl font-semibold px-2 sm:px-4 truncate min-w-0 flex-1">
+            {weekRange}
+          </h2>
         </div>
         {!isCurrentWeek && (
-          <Button variant="outline" onClick={goToCurrentWeek}>
+          <Button
+            variant="outline"
+            onClick={goToCurrentWeek}
+            className="w-full sm:w-auto flex-shrink-0"
+          >
             Go to Current Week
           </Button>
         )}
       </div>
 
       {/* Calendar Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4">
-        {/* Day Headers */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3 sm:gap-4">
+        {/* Day Headers - hidden on mobile, shown on lg and above */}
         {dayNames.map((dayName, index) => (
           <div
             key={dayName}
-            className="text-center text-base font-medium text-muted-foreground pb-2"
+            className="hidden lg:block text-center text-base font-medium text-muted-foreground pb-2"
           >
             {dayName}
           </div>
@@ -191,22 +214,30 @@ export function WeeklyCalendar({ sessions }: WeeklyCalendarProps) {
               transition={{ duration: 0.3, delay: index * 0.05 }}
             >
               <Card
-                className={`min-h-[220px] border-2 shadow-gentle transition-shadow hover:shadow-md ${
+                className={`min-h-[180px] sm:min-h-[200px] lg:min-h-[220px] border-2 shadow-gentle transition-shadow hover:shadow-md overflow-hidden ${
                   isToday
                     ? 'border-primary bg-primary/5 shadow-md'
                     : ''
                 }`}
               >
-                <CardContent className="p-4">
-                  <div
-                    className={`text-xl font-semibold mb-3 ${
-                      isToday ? 'text-primary' : 'text-foreground'
-                    }`}
-                  >
-                    {date.getDate()}
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-center justify-between mb-2 sm:mb-3">
+                    <div
+                      className={`text-lg sm:text-xl font-semibold ${
+                        isToday ? 'text-primary' : 'text-foreground'
+                      }`}
+                    >
+                      {date.getDate()}
+                    </div>
+                    {/* Show day name on mobile only */}
+                    <div className="text-sm font-medium text-muted-foreground lg:hidden">
+                      {dayNames[date.getDay()]}
+                    </div>
                   </div>
-                  <div className="space-y-2.5">
-                    {daySessions.map((session) => {
+                  <div className="space-y-2 sm:space-y-2.5">
+                    {[...daySessions]
+                      .sort(sortSessions)
+                      .map((session) => {
                       const sessionDate = new Date(session.created_at);
                       const time = sessionDate.toLocaleTimeString('en-US', {
                         hour: 'numeric',
@@ -222,7 +253,7 @@ export function WeeklyCalendar({ sessions }: WeeklyCalendarProps) {
                         return `${hours} hr ${mins} min`;
                       };
 
-                      const priority = session.mainActivity?.priority || session.fillerActivity?.priority;
+                      const priority = session.mainActivity?.priority;
 
                       return (
                         <motion.div
@@ -230,30 +261,25 @@ export function WeeklyCalendar({ sessions }: WeeklyCalendarProps) {
                           initial={{ opacity: 0, y: -5 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.2 }}
-                          className="text-sm p-3 rounded-lg border-2 bg-card shadow-sm"
+                          className="text-sm p-2.5 sm:p-3 rounded-lg border-2 bg-card shadow-sm overflow-hidden"
                         >
-                          <div className="font-medium truncate text-base">
+                          <div className="font-medium truncate text-sm sm:text-base">
                             {sessionTypeLabels[session.session_type]}
                           </div>
-                          <div className="text-muted-foreground text-sm mt-1">
+                          <div className="text-muted-foreground text-xs sm:text-sm mt-1 break-words">
                             {time}
                             {session.duration_minutes && (
                               <span className="ml-1">• {formatDuration(session.duration_minutes)}</span>
                             )}
                           </div>
                           {session.mainActivity && (
-                            <div className="mt-2 text-sm font-medium truncate">
+                            <div className="mt-2 text-xs sm:text-sm font-medium truncate">
                               {session.mainActivity.name}
-                            </div>
-                          )}
-                          {session.fillerActivity && (
-                            <div className="mt-1 text-sm text-muted-foreground truncate">
-                              + {session.fillerActivity.name}
                             </div>
                           )}
                           {priority && (
                             <span
-                              className={`inline-flex items-center rounded-full px-2.5 py-1 text-sm font-medium mt-2 ${priorityColors[priority]}`}
+                              className={`inline-flex items-center rounded-full px-2 sm:px-2.5 py-0.5 sm:py-1 text-xs sm:text-sm font-medium mt-2 ${priorityColors[priority]}`}
                             >
                               {priorityLabels[priority]}
                             </span>

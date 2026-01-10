@@ -4,14 +4,11 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Activity, Calendar } from 'lucide-react';
-import { LogoutButton } from '@/components/auth/LogoutButton';
 import { SessionInput } from '@/components/coach/SessionInput';
 import { PracticeSuggestion } from '@/components/coach/PracticeSuggestion';
 import { TimerDisplay } from '@/components/coach/TimerDisplay';
 import { CoachSuggestion, SessionType, EnergyLevel } from '@/lib/types';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { NavHeader } from '@/components/navigation/NavHeader';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -122,7 +119,6 @@ export default function Home() {
           session_type: sessionType,
           energy_level: energyLevel,
           main_activity_id: suggestion.mainActivity?.id,
-          filler_activity_id: suggestion.fillerActivity?.id,
           duration_minutes: selectedDurationMinutes,
         }),
       });
@@ -164,7 +160,6 @@ export default function Home() {
           session_type: sessionType,
           energy_level: energyLevel,
           main_activity_id: suggestion.mainActivity?.id,
-          filler_activity_id: suggestion.fillerActivity?.id,
           duration_minutes: actualDurationMinutes,
         }),
       });
@@ -206,37 +201,17 @@ export default function Home() {
       />
 
       {/* Header - positioned at top of page */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 md:p-8"
-      >
-        <div className="flex-1">
-          <h1 className="text-4xl md:text-5xl font-serif text-foreground mb-3 font-normal tracking-tight">
-            {session?.user?.name ? `${session.user.name}'s Life Coach` : 'Life Coach'}
-          </h1>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {session && (
-            <>
-              <Link href="/activities">
-                <Button variant="ghost" className="gap-2 text-foreground hover:bg-accent/50 transition-colors">
-                  <Activity className="h-4 w-4" />
-                  <span>Manage Activities</span>
-                </Button>
-              </Link>
-              <Link href="/history">
-                <Button variant="ghost" className="gap-2 text-foreground hover:bg-accent/50 transition-colors">
-                  <Calendar className="h-4 w-4" />
-                  <span>Session History</span>
-                </Button>
-              </Link>
-              <LogoutButton />
-            </>
-          )}
-        </div>
-      </motion.div>
+      <div className="relative z-10 pt-8 pb-6 pl-6 pr-8 md:pt-12 md:pb-8 md:pl-8 md:pr-12">
+        {session && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          >
+            <NavHeader title="Life Coach App" />
+          </motion.div>
+        )}
+      </div>
 
       <div className="relative z-10 flex flex-col items-center p-6 md:p-8">
         <div className="w-full max-w-2xl">
