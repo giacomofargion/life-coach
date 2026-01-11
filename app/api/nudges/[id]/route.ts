@@ -92,3 +92,48 @@ export async function PATCH(
     );
   }
 }
+
+// DELETE /api/nudges/[id] - Delete a nudge
+export async function DELETE(
+  request: NextRequest,
+  { params }: RouteParams
+) {
+  try {
+    const userId = await requireAuth();
+    const { id: nudgeId } = await params;
+
+    const sql = getDb();
+
+    // Verify the nudge belongs to the user and delete it
+    const deleted = await sql`
+      DELETE FROM nudges
+      WHERE id = ${nudgeId} AND user_id = ${userId}
+      RETURNING id
+    ` as Array<{ id: string }>;
+
+    if (!deleted || deleted.length === 0) {
+      return NextResponse.json(
+        { error: 'Nudge not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      { message: 'Nudge deleted successfully' },
+      { status: 200 }
+    );
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Unauthorized') {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    console.error('Error deleting nudge:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

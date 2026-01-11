@@ -2,15 +2,16 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
+import { Nudge } from '@/lib/types';
 
-export function useNudgeCount() {
+export function useNudges() {
   const { data: session, status } = useSession();
-  const [activeCount, setActiveCount] = useState(0);
+  const [nudges, setNudges] = useState<Nudge[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchCount = useCallback(async () => {
+  const fetchNudges = useCallback(async () => {
     if (status !== 'authenticated' || !session) {
-      setActiveCount(0);
+      setNudges([]);
       return;
     }
 
@@ -19,21 +20,21 @@ export function useNudgeCount() {
       const response = await fetch('/api/nudges');
       if (response.ok) {
         const data = await response.json();
-        setActiveCount(data.activeCount || 0);
+        setNudges(data.nudges || []);
       }
     } catch (error) {
-      console.error('Error fetching nudge count:', error);
+      console.error('Error fetching nudges:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [status, session, setActiveCount, setIsLoading]);
+  }, [status, session]);
 
   useEffect(() => {
-    fetchCount();
+    fetchNudges();
 
-    // Listen for all nudge change events
+    // Listen for custom events when nudges change
     const handleNudgeChange = () => {
-      fetchCount();
+      fetchNudges();
     };
 
     window.addEventListener('nudgeCreated', handleNudgeChange);
@@ -45,7 +46,7 @@ export function useNudgeCount() {
       window.removeEventListener('nudgeCompleted', handleNudgeChange);
       window.removeEventListener('nudgeDeleted', handleNudgeChange);
     };
-  }, [fetchCount]);
+  }, [fetchNudges]);
 
-  return { activeCount, isLoading, refetch: fetchCount };
+  return { nudges, isLoading, refetch: fetchNudges };
 }

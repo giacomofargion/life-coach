@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { navItems } from '@/components/navigation/navItems';
-import { NudgeButton } from '@/components/nudges/NudgeButton';
+import { MobileNudgeMenuItem } from '@/components/nudges/MobileNudgeMenuItem';
 import { useNudgeCount } from '@/components/nudges/useNudgeCount';
 
 export function MobileMenu() {
@@ -102,10 +102,9 @@ export function MobileMenu() {
                 );
               })}
 
-              <NudgeButton
+              <MobileNudgeMenuItem
                 activeCount={activeCount}
-                className="w-full justify-start gap-3 h-12 text-base"
-                onModalOpen={handleLinkClick}
+                className="w-full"
               />
 
               <div className="pt-2 mt-2 border-t">
