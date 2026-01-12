@@ -11,6 +11,7 @@ import { Nudge } from '@/lib/types';
 import { NudgeModal } from './NudgeModal';
 import { useNudges } from './useNudges';
 import { NudgePanelContent } from './NudgePanelContent';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface NudgePopoverProps {
   children: React.ReactNode;
@@ -23,6 +24,8 @@ export function NudgePopover({ children, activeCount }: NudgePopoverProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [completingId, setCompletingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [pendingNudgeId, setPendingNudgeId] = useState<string | null>(null);
   // Track which nudges have their checkbox checked (but not yet completed)
   const [checkedNudgeIds, setCheckedNudgeIds] = useState<Set<string>>(new Set());
   const { nudges, isLoading } = useNudges();
@@ -75,14 +78,17 @@ export function NudgePopover({ children, activeCount }: NudgePopoverProps) {
     }
   }
 
-  async function handleDelete(nudgeId: string) {
-    if (!confirm('Are you sure you want to delete this nudge?')) {
-      return;
-    }
+  function handleDelete(nudgeId: string) {
+    setPendingNudgeId(nudgeId);
+    setIsConfirmOpen(true);
+  }
 
-    setDeletingId(nudgeId);
+  async function handleConfirmDelete() {
+    if (!pendingNudgeId) return;
+
+    setDeletingId(pendingNudgeId);
     try {
-      const response = await fetch(`/api/nudges/${nudgeId}`, {
+      const response = await fetch(`/api/nudges/${pendingNudgeId}`, {
         method: 'DELETE',
       });
 
@@ -93,7 +99,7 @@ export function NudgePopover({ children, activeCount }: NudgePopoverProps) {
       // Remove from checked set
       setCheckedNudgeIds(prev => {
         const newSet = new Set(prev);
-        newSet.delete(nudgeId);
+        newSet.delete(pendingNudgeId);
         return newSet;
       });
 
@@ -102,6 +108,7 @@ export function NudgePopover({ children, activeCount }: NudgePopoverProps) {
       console.error('Error deleting nudge:', error);
     } finally {
       setDeletingId(null);
+      setPendingNudgeId(null);
     }
   }
 
@@ -145,6 +152,14 @@ export function NudgePopover({ children, activeCount }: NudgePopoverProps) {
     setShowCreateModal(true);
   }
 
+  function handleConfirmOpenChange(newOpen: boolean) {
+    setIsConfirmOpen(newOpen);
+    if (!newOpen) {
+      // Clear pending nudge ID when modal is closed (cancel or outside click)
+      setPendingNudgeId(null);
+    }
+  }
+
   return (
     <>
       <Popover open={open} onOpenChange={handleOpenChange}>
@@ -178,6 +193,18 @@ export function NudgePopover({ children, activeCount }: NudgePopoverProps) {
         onOpenChange={setShowCreateModal}
         onSubmit={handleCreate}
         isLoading={isCreating}
+      />
+
+      <ConfirmDialog
+        open={isConfirmOpen}
+        onOpenChange={handleConfirmOpenChange}
+        title="Delete nudge?"
+        description="Are you sure you want to delete this nudge? This action cannot be undone."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onConfirm={handleConfirmDelete}
+        isLoading={deletingId !== null}
+        variant="destructive"
       />
     </>
   );
