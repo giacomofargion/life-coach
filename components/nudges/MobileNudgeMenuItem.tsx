@@ -12,9 +12,10 @@ import { NudgePanelContent } from '@/components/nudges/NudgePanelContent';
 interface MobileNudgeMenuItemProps {
   activeCount?: number;
   className?: string;
+  isDarkSidebar?: boolean;
 }
 
-export function MobileNudgeMenuItem({ activeCount = 0, className }: MobileNudgeMenuItemProps) {
+export function MobileNudgeMenuItem({ activeCount = 0, className, isDarkSidebar = false }: MobileNudgeMenuItemProps) {
   const [open, setOpen] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -108,32 +109,62 @@ export function MobileNudgeMenuItem({ activeCount = 0, className }: MobileNudgeM
   return (
     <>
       <div className="w-full">
-        <Button
-          variant="ghost"
-          className={`w-full justify-start gap-3 h-12 text-base relative ${className || ''}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            setOpen((prev) => {
-              const next = !prev;
-              if (!next) setCheckedNudgeIds(new Set());
-              return next;
-            });
-          }}
-          aria-expanded={open}
-        >
-          <Bell className="h-5 w-5 flex-shrink-0" />
-          <span className="flex-1 text-left">Need a Nudge?</span>
-          <ChevronDown
-            className={`h-4 w-4 opacity-70 transition-transform ${open ? 'rotate-180' : ''}`}
-            style={{ pointerEvents: 'none' }}
-          />
-
-          {activeCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
-              {activeCount > 9 ? '9+' : activeCount}
+        {isDarkSidebar ? (
+          <div
+            className="flex items-center gap-4 px-6 py-5 text-card-foreground hover:bg-accent hover:text-accent-foreground transition-colors rounded-lg group cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen((prev) => {
+                const next = !prev;
+                if (!next) setCheckedNudgeIds(new Set());
+                return next;
+              });
+            }}
+            aria-expanded={open}
+          >
+            <div className="w-2 h-2 bg-transparent" />
+            <Bell className="h-6 w-6 flex-shrink-0" />
+            <span className="flex-1 text-left text-xl font-medium uppercase tracking-wide">
+              Need a Nudge?
             </span>
-          )}
-        </Button>
+            <ChevronDown
+              className={`h-5 w-5 opacity-70 transition-transform ${open ? 'rotate-180' : ''}`}
+              style={{ pointerEvents: 'none' }}
+            />
+            {activeCount > 0 && (
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
+                {activeCount > 9 ? '9+' : activeCount}
+              </span>
+            )}
+          </div>
+        ) : (
+          <Button
+            variant="ghost"
+            className={`w-full justify-start gap-3 h-12 text-base relative ${className || ''}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen((prev) => {
+                const next = !prev;
+                if (!next) setCheckedNudgeIds(new Set());
+                return next;
+              });
+            }}
+            aria-expanded={open}
+          >
+            <Bell className="h-5 w-5 flex-shrink-0" />
+            <span className="flex-1 text-left">Need a Nudge?</span>
+            <ChevronDown
+              className={`h-4 w-4 opacity-70 transition-transform ${open ? 'rotate-180' : ''}`}
+              style={{ pointerEvents: 'none' }}
+            />
+
+            {activeCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
+                {activeCount > 9 ? '9+' : activeCount}
+              </span>
+            )}
+          </Button>
+        )}
 
         <AnimatePresence>
           {open && (
@@ -142,7 +173,11 @@ export function MobileNudgeMenuItem({ activeCount = 0, className }: MobileNudgeM
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.2 }}
-              className="mt-2 overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-md"
+              className={`mt-2 overflow-hidden rounded-xl border shadow-md ${
+                isDarkSidebar
+                  ? 'bg-card/95 backdrop-blur-sm border-border text-card-foreground'
+                  : 'bg-popover text-popover-foreground'
+              }`}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="max-h-[60vh] flex flex-col">
