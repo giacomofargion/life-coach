@@ -49,6 +49,16 @@ export interface CoachSuggestion {
   reflectionPrompt: string;
 }
 
+export interface Nudge {
+  id: string;
+  user_id: string;
+  content: string;
+  is_completed: boolean;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // NextAuth type extensions
 declare module 'next-auth' {
   interface Session {
