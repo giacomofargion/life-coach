@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Mail } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -127,12 +128,12 @@ export function ForgotPasswordForm() {
         </Form>
         <div className="mt-4 text-center text-sm text-muted-foreground">
           Remember your password?{' '}
-          <a
+          <Link
             href="/login"
             className="font-medium text-primary hover:underline"
           >
             Sign in
-          </a>
+          </Link>
         </div>
       </CardContent>
     </Card>

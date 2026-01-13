@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth-helpers';
 import { getDb } from '@/lib/db/server';
-import crypto from 'crypto';
+import crypto, { createHash } from 'crypto';
 import { sendEmailVerificationEmail } from '@/lib/auth/send-email';
 import { z } from 'zod';
 
@@ -57,6 +57,9 @@ export async function POST(request: NextRequest) {
     const token = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
 
+    // Hash token before storing (plaintext token is sent in email, only hash is stored)
+    const hashedToken = createHash('sha256').update(token).digest('hex');
+
     // Invalidate any existing tokens for this user
     await sql`
       UPDATE email_verification_tokens
@@ -64,10 +67,10 @@ export async function POST(request: NextRequest) {
       WHERE user_id = ${userId} AND used_at IS NULL
     `;
 
-    // Store token in database
+    // Store hashed token in database
     await sql`
       INSERT INTO email_verification_tokens (user_id, new_email, token, expires_at)
-      VALUES (${userId}, ${newEmail.toLowerCase()}, ${token}, ${expiresAt})
+      VALUES (${userId}, ${newEmail.toLowerCase()}, ${hashedToken}, ${expiresAt})
     `;
 
     // Send verification email
@@ -79,7 +82,7 @@ export async function POST(request: NextRequest) {
         token,
         baseUrl
       );
-      console.log('Email verification email sent successfully to:', newEmail.toLowerCase());
+      console.log('Email verification email sent successfully');
     } catch (emailError) {
       console.error('Error sending email verification email:', emailError);
       // Delete the token since email failed to send

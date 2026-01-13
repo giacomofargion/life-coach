@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db/server';
+import { createHash } from 'crypto';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 
@@ -15,11 +16,14 @@ export async function POST(request: NextRequest) {
 
     const sql = getDb();
 
-    // Find valid token
+    // Hash incoming token to compare with stored hash
+    const hashedToken = createHash('sha256').update(token).digest('hex');
+
+    // Find valid token (compare hashed tokens)
     const tokenResult = await sql`
       SELECT prt.id, prt.user_id, prt.expires_at, prt.used_at
       FROM password_reset_tokens prt
-      WHERE prt.token = ${token}
+      WHERE prt.token = ${hashedToken}
         AND prt.used_at IS NULL
         AND prt.expires_at > NOW()
     ` as Array<{
@@ -61,7 +65,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'Invalid input', details: error.issues },
         { status: 400 }
       );
     }

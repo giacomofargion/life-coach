@@ -22,7 +22,7 @@ export async function PATCH(request: NextRequest) {
       SELECT password_hash
       FROM users
       WHERE id = ${userId}
-    ` as Array<{ password_hash: string }>;
+    ` as Array<{ password_hash: string | null }>;
 
     if (!userResult || userResult.length === 0) {
       return NextResponse.json(
@@ -33,12 +33,29 @@ export async function PATCH(request: NextRequest) {
 
     const user = userResult[0];
 
+    // Check if account has a password (defensive check for data integrity)
+    if (!user.password_hash) {
+      return NextResponse.json(
+        { error: 'Account has no password set. Please contact support.' },
+        { status: 400 }
+      );
+    }
+
     // Verify current password
     const isValid = await bcrypt.compare(currentPassword, user.password_hash);
 
     if (!isValid) {
       return NextResponse.json(
         { error: 'Current password is incorrect' },
+        { status: 400 }
+      );
+    }
+
+    // Prevent no-op password updates by checking if new password matches current password
+    const isSamePassword = await bcrypt.compare(newPassword, user.password_hash);
+    if (isSamePassword) {
+      return NextResponse.json(
+        { error: 'New password must be different from your current password' },
         { status: 400 }
       );
     }
@@ -59,7 +76,7 @@ export async function PATCH(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'Invalid input', details: error.issues },
         { status: 400 }
       );
     }

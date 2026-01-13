@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import Link from 'next/link';
 import { UserPlus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { MAX_NAME_LENGTH } from '@/lib/utils';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +32,7 @@ const signupSchema = z
     email: z.string().email('Please enter a valid email address'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
     confirmPassword: z.string(),
-    name: z.string().min(1, 'Name is required'),
+    name: z.string().min(1, 'Name is required').max(MAX_NAME_LENGTH, `Name must be ${MAX_NAME_LENGTH} characters or fewer`),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -200,12 +202,12 @@ export function SignupForm() {
         </Form>
         <div className="mt-4 text-center text-sm text-muted-foreground">
           Already have an account?{' '}
-          <a
+          <Link
             href="/login"
             className="font-medium text-primary hover:underline"
           >
             Sign in
-          </a>
+          </Link>
         </div>
       </CardContent>
     </Card>

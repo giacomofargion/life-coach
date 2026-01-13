@@ -67,6 +67,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [emailSuccess, setEmailSuccess] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isUsernameLoading, setIsUsernameLoading] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
   const [isEmailLoading, setIsEmailLoading] = useState(false);
@@ -77,6 +78,9 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
       name: session?.user?.name || '',
     },
   });
+
+  // Extract stable methods to avoid re-renders
+  const { reset: resetUsernameForm, getValues: getUsernameFormValues } = usernameForm;
 
   const passwordForm = useForm<UpdatePasswordFormValues>({
     resolver: zodResolver(updatePasswordSchema),
@@ -97,12 +101,12 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   // Update username form when session changes (only when modal opens or session updates after save)
   useEffect(() => {
     if (open && session?.user?.name) {
-      const currentValue = usernameForm.getValues('name');
+      const currentValue = getUsernameFormValues('name');
       if (currentValue !== session.user.name) {
-        usernameForm.reset({ name: session.user.name });
+        resetUsernameForm({ name: session.user.name });
       }
     }
-  }, [open, session?.user?.name, usernameForm]);
+  }, [open, session?.user?.name, resetUsernameForm, getUsernameFormValues]);
 
   async function handleUpdateUsername(values: UpdateUsernameFormValues) {
     setIsUsernameLoading(true);
@@ -204,6 +208,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
   async function handleDeleteAccount() {
     setIsDeleting(true);
+    setDeleteError(null);
     try {
       const response = await fetch('/api/auth/delete-account', {
         method: 'DELETE',
@@ -220,7 +225,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
       onOpenChange(false);
     } catch (error) {
       console.error('Error deleting account:', error);
-      alert('Failed to delete account. Please try again.');
+      setDeleteError('Failed to delete account. Please try again.');
     } finally {
       setIsDeleting(false);
       setShowDeleteDialog(false);
@@ -266,6 +271,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                       setPasswordSuccess(null);
                       setEmailError(null);
                       setEmailSuccess(null);
+                      setDeleteError(null);
                     }}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors cursor-pointer ${
                       isActive
@@ -482,6 +488,11 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                       Permanently delete your account and all associated data. This action cannot be undone.
                     </p>
                   </div>
+                  {deleteError && (
+                    <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
+                      {deleteError}
+                    </div>
+                  )}
                   <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 space-y-4">
                     <p className="text-sm text-destructive font-medium">
                       Warning: This will permanently delete:

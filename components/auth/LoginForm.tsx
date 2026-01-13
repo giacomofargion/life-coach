@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { Mail, Lock, LogIn } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -149,21 +150,21 @@ export function LoginForm() {
         </Form>
         <div className="mt-4 space-y-2 text-center text-sm text-muted-foreground">
           <div>
-            Don't have an account?{' '}
-            <a
+            Don&apos;t have an account?{' '}
+            <Link
               href="/signup"
               className="font-medium text-primary hover:underline"
             >
               Sign up
-            </a>
+            </Link>
           </div>
           <div>
-            <a
+            <Link
               href="/forgot-password"
               className="font-medium text-primary hover:underline"
             >
               Forgot Password?
-            </a>
+            </Link>
           </div>
         </div>
       </CardContent>

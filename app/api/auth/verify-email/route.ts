@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db/server';
+import { createHash } from 'crypto';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,11 +15,14 @@ export async function GET(request: NextRequest) {
 
     const sql = getDb();
 
-    // Find valid token
+    // Hash incoming token to compare with stored hash
+    const hashedToken = createHash('sha256').update(token).digest('hex');
+
+    // Find valid token (compare hashed tokens)
     const tokenResult = await sql`
       SELECT evt.id, evt.user_id, evt.new_email, evt.expires_at, evt.used_at
       FROM email_verification_tokens evt
-      WHERE evt.token = ${token}
+      WHERE evt.token = ${hashedToken}
         AND evt.used_at IS NULL
         AND evt.expires_at > NOW()
     ` as Array<{
@@ -37,13 +41,13 @@ export async function GET(request: NextRequest) {
 
     const tokenRecord = tokenResult[0];
 
-    // Check if new email is still available (might have been taken since request)
+    // Check if new email is already taken (optimistic check)
     const existingUser = await sql`
       SELECT id FROM users WHERE email = ${tokenRecord.new_email}
     ` as Array<{ id: string }>;
 
     if (existingUser && existingUser.length > 0) {
-      // Mark token as used even though we can't complete the change
+      // Email already taken, mark token as used
       await sql`
         UPDATE email_verification_tokens
         SET used_at = NOW()
@@ -54,19 +58,47 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Update user's email
-    await sql`
-      UPDATE users
-      SET email = ${tokenRecord.new_email}
-      WHERE id = ${tokenRecord.user_id}
-    `;
+    // Update user's email - UNIQUE constraint will catch any race condition
+    // If another request claims this email between check and update,
+    // PostgreSQL will throw a unique_violation error (code 23505)
+    try {
+      await sql`
+        UPDATE users
+        SET email = ${tokenRecord.new_email}
+        WHERE id = ${tokenRecord.user_id}
+      `;
 
-    // Mark token as used
-    await sql`
-      UPDATE email_verification_tokens
-      SET used_at = NOW()
-      WHERE id = ${tokenRecord.id}
-    `;
+      // Mark token as used only if email update succeeded
+      await sql`
+        UPDATE email_verification_tokens
+        SET used_at = NOW()
+        WHERE id = ${tokenRecord.id}
+      `;
+    } catch (updateError) {
+      // Check if it's a unique constraint violation (race condition caught by DB)
+      // PostgreSQL error code 23505 is unique_violation
+      const isUniqueViolation =
+        updateError &&
+        typeof updateError === 'object' &&
+        'code' in updateError &&
+        updateError.code === '23505';
+
+      if (isUniqueViolation) {
+        // Email was taken between check and update due to race condition
+        // Mark token as used to prevent retry attacks
+        await sql`
+          UPDATE email_verification_tokens
+          SET used_at = NOW()
+          WHERE id = ${tokenRecord.id}
+        `;
+        return NextResponse.redirect(
+          new URL('/login?error=email_already_in_use', request.url)
+        );
+      }
+
+      // Re-throw other errors to be handled by outer catch
+      throw updateError;
+    }
 
     // Redirect to login with success message
     return NextResponse.redirect(

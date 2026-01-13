@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db/server';
-import crypto from 'crypto';
+import crypto, { createHash } from 'crypto';
 import { sendPasswordResetEmail } from '@/lib/auth/send-email';
 
 export async function POST(request: NextRequest) {
@@ -15,13 +15,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Normalize email: trim whitespace and convert to lowercase for case-insensitive lookup
+    const normalizedEmail = email.trim().toLowerCase();
+
     const sql = getDb();
 
-    // Find user by email
+    // Find user by email (case-insensitive comparison)
     const userResult = await sql`
       SELECT id, email, name
       FROM users
-      WHERE email = ${email}
+      WHERE LOWER(email) = ${normalizedEmail}
     ` as Array<{ id: string; email: string; name: string | null }>;
 
     // Don't reveal if user exists or not (security best practice)
@@ -33,6 +36,9 @@ export async function POST(request: NextRequest) {
       const token = crypto.randomBytes(32).toString('hex');
       const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
 
+      // Hash token before storing (plaintext token is sent in email, only hash is stored)
+      const hashedToken = createHash('sha256').update(token).digest('hex');
+
       // Invalidate any existing tokens for this user
       await sql`
         UPDATE password_reset_tokens
@@ -40,17 +46,17 @@ export async function POST(request: NextRequest) {
         WHERE user_id = ${user.id} AND used_at IS NULL
       `;
 
-      // Store token in database
+      // Store hashed token in database
       await sql`
         INSERT INTO password_reset_tokens (user_id, token, expires_at)
-        VALUES (${user.id}, ${token}, ${expiresAt})
+        VALUES (${user.id}, ${hashedToken}, ${expiresAt})
       `;
 
       // Send password reset email
       const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
       try {
         await sendPasswordResetEmail(user.email, user.name || 'there', token, baseUrl);
-        console.log('Password reset email sent successfully to:', user.email);
+        console.log('Password reset email sent successfully');
       } catch (emailError) {
         console.error('Error sending password reset email:', emailError);
         // Still return success to prevent email enumeration, but log the error
