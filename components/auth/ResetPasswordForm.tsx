@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Mail, Lock, LogIn } from 'lucide-react';
+import { Lock, KeyRound } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -25,71 +24,95 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
-const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(1, 'Password is required'),
-});
+const resetPasswordSchema = z
+  .object({
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
 
-type LoginFormValues = z.infer<typeof loginSchema>;
+type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
-export function LoginForm() {
+export function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    if (searchParams.get('registered') === 'true') {
-      setSuccess('Account created successfully! Please sign in.');
-    }
-    if (searchParams.get('email_verified') === 'true') {
-      setSuccess('Email verified successfully! Please sign in with your new email.');
+    const tokenParam = searchParams.get('token');
+    if (!tokenParam) {
+      setError('Invalid reset link. Please request a new password reset.');
+    } else {
+      setToken(tokenParam);
     }
   }, [searchParams]);
 
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<ResetPasswordFormValues>({
+    resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      email: '',
       password: '',
+      confirmPassword: '',
     },
   });
 
-  async function onSubmit(values: LoginFormValues) {
+  async function onSubmit(values: ResetPasswordFormValues) {
+    if (!token) {
+      setError('Invalid reset token');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
+    setSuccess(null);
 
     try {
-      const result = await signIn('credentials', {
-        email: values.email,
-        password: values.password,
-        redirect: false,
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token,
+          password: values.password,
+        }),
       });
 
-      if (result?.error) {
-        setError('Invalid email or password');
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Failed to reset password');
         setIsLoading(false);
         return;
       }
 
-      // Redirect to home page on success
-      router.push('/');
-      router.refresh();
+      setSuccess('Password reset successfully! Redirecting to login...');
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
     } catch (error) {
       setError('An unexpected error occurred. Please try again.');
       setIsLoading(false);
     }
   }
 
+  if (!token && !error) {
+    return null; // Still loading token from URL
+  }
+
   return (
     <Card className="w-full max-w-md border shadow-soft bg-card/95">
       <CardHeader className="space-y-3 pb-6">
         <CardTitle className="text-3xl md:text-4xl font-serif font-normal text-foreground">
-          Welcome back
+          Reset Password
         </CardTitle>
         <CardDescription className="text-base text-muted-foreground">
-          Continue your journey to mindfulness.
+          Enter your new password below.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -107,14 +130,14 @@ export function LoginForm() {
             )}
             <FormField
               control={form.control}
-              name="email"
+              name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>New Password</FormLabel>
                   <FormControl>
                     <Input
-                      type="email"
-                      placeholder="you@example.com"
+                      type="password"
+                      placeholder="At least 8 characters"
                       {...field}
                       disabled={isLoading}
                     />
@@ -125,14 +148,14 @@ export function LoginForm() {
             />
             <FormField
               control={form.control}
-              name="password"
+              name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder="Enter your password"
+                      placeholder="Confirm your password"
                       {...field}
                       disabled={isLoading}
                     />
@@ -141,30 +164,20 @@ export function LoginForm() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full gap-2" disabled={isLoading}>
-              <LogIn className="h-4 w-4" />
-              <span>{isLoading ? 'Signing in...' : 'Sign in'}</span>
+            <Button type="submit" className="w-full gap-2" disabled={isLoading || !token}>
+              <KeyRound className="h-4 w-4" />
+              <span>{isLoading ? 'Resetting...' : 'Reset Password'}</span>
             </Button>
           </form>
         </Form>
-        <div className="mt-4 space-y-2 text-center text-sm text-muted-foreground">
-          <div>
-            Don't have an account?{' '}
-            <a
-              href="/signup"
-              className="font-medium text-primary hover:underline"
-            >
-              Sign up
-            </a>
-          </div>
-          <div>
-            <a
-              href="/forgot-password"
-              className="font-medium text-primary hover:underline"
-            >
-              Forgot Password?
-            </a>
-          </div>
+        <div className="mt-4 text-center text-sm text-muted-foreground">
+          Remember your password?{' '}
+          <a
+            href="/login"
+            className="font-medium text-primary hover:underline"
+          >
+            Sign in
+          </a>
         </div>
       </CardContent>
     </Card>
