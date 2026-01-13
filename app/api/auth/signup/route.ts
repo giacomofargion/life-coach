@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db/server';
+import { MAX_NAME_LENGTH } from '@/lib/utils';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 
 const signupSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
-  name: z.string().min(1, 'Name is required'),
+  name: z.string().min(1, 'Name is required').max(MAX_NAME_LENGTH, `Name must be ${MAX_NAME_LENGTH} characters or fewer`),
 });
 
 export async function POST(request: NextRequest) {

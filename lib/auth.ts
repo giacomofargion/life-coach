@@ -57,17 +57,37 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
+      // Initial sign in
       if (user) {
         token.id = user.id;
         token.name = user.name;
+        token.email = user.email;
       }
+
+      // Refresh user data when session is updated (e.g., after username/email change)
+      if (trigger === 'update' && token.id) {
+        const sql = getDb();
+        const userResult = await sql`
+          SELECT id, email, name
+          FROM users
+          WHERE id = ${token.id}
+        ` as Array<{ id: string; email: string; name: string | null }>;
+
+        if (userResult && userResult.length > 0) {
+          const updatedUser = userResult[0];
+          token.name = updatedUser.name || undefined;
+          token.email = updatedUser.email;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.name = token.name as string | undefined;
+        session.user.email = token.email as string | undefined;
       }
       return session;
     },

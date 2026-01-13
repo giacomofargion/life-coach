@@ -19,6 +19,11 @@ export default withAuth(
           return true;
         }
 
+        // Allow public auth pages without authentication
+        if (pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/reset-password') {
+          return true;
+        }
+
         // Allow cron endpoints without user authentication (they use CRON_SECRET)
         if (pathname.startsWith('/api/cron/')) {
           return true;
@@ -41,16 +46,16 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api/auth (NextAuth routes)
-     * - api/cron (Cron job endpoints - use CRON_SECRET instead)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - Static file extensions (images, fonts, etc. from public folder)
-     * - login, signup (public pages)
-     */
-    '/((?!api/auth|api/cron|_next/static|_next/image|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.svg|.*\\.webp|.*\\.ico|.*\\.woff|.*\\.woff2|.*\\.ttf|.*\\.eot|login|signup).*)',
-  ],
+    matcher: [
+      /*
+       * Match all request paths except for the ones starting with:
+       * - api/auth (NextAuth routes)
+       * - api/cron (Cron job endpoints - use CRON_SECRET instead)
+       * - _next/static (static files)
+       * - _next/image (image optimization files)
+       * - Static file extensions (images, fonts, etc. from public folder)
+       * - login, signup, forgot-password, reset-password (public pages)
+       */
+      '/((?!api/auth|api/cron|_next/static|_next/image|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.svg|.*\\.webp|.*\\.ico|.*\\.woff|.*\\.woff2|.*\\.ttf|.*\\.eot|login|signup|forgot-password|reset-password).*)',
+    ],
 };

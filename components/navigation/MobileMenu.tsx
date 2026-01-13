@@ -4,20 +4,19 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation';
-import { Menu, X, LogOut, Trash2 } from 'lucide-react';
+import { Menu, X, LogOut, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { navItems } from '@/components/navigation/navItems';
 import { MobileNudgeMenuItem } from '@/components/nudges/MobileNudgeMenuItem';
 import { useNudgeCount } from '@/components/nudges/useNudgeCount';
-import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { SettingsModal } from '@/components/settings/SettingsModal';
 
 export function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const { activeCount } = useNudgeCount();
@@ -49,29 +48,9 @@ export function MobileMenu() {
     setIsOpen(false);
   }
 
-  async function handleDeleteAccount() {
-    setIsDeleting(true);
-    try {
-      const response = await fetch('/api/auth/delete-account', {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete account');
-      }
-
-      // Sign out and redirect to login
-      await signOut({ redirect: false });
-      router.refresh();
-      router.push('/login');
-      setIsOpen(false);
-    } catch (error) {
-      console.error('Error deleting account:', error);
-      alert('Failed to delete account. Please try again.');
-    } finally {
-      setIsDeleting(false);
-      setShowDeleteDialog(false);
-    }
+  function handleSettingsClick() {
+    setShowSettingsModal(true);
+    setIsOpen(false);
   }
 
   function handleLinkClick() {
@@ -192,24 +171,20 @@ export function MobileMenu() {
               >
                 <Button
                   variant="ghost"
+                  onClick={handleSettingsClick}
+                  className="w-full justify-start gap-4 px-6 py-5 h-auto text-xl font-medium uppercase tracking-wide hover:bg-accent hover:text-accent-foreground"
+                >
+                  <Settings className="h-6 w-6" />
+                  <span>Settings</span>
+                </Button>
+
+                <Button
+                  variant="ghost"
                   onClick={handleLogout}
                   className="w-full justify-start gap-4 px-6 py-5 h-auto text-xl font-medium uppercase tracking-wide text-destructive hover:bg-accent hover:text-destructive"
                 >
                   <LogOut className="h-6 w-6" />
                   <span>Sign out</span>
-                </Button>
-
-                {/* Delete Account Button */}
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    setShowDeleteDialog(true);
-                    setIsOpen(false);
-                  }}
-                  className="w-full justify-start gap-4 px-6 py-5 h-auto text-xl font-medium uppercase tracking-wide text-destructive/80 hover:bg-destructive/10 hover:text-destructive"
-                >
-                  <Trash2 className="h-6 w-6" />
-                  <span>Delete Account</span>
                 </Button>
               </motion.div>
             </nav>
@@ -269,17 +244,10 @@ export function MobileMenu() {
       {/* Portal renders sidebar at document body level to escape stacking contexts */}
       {mounted && createPortal(sidebarContent, document.body)}
 
-      {/* Delete Account Confirmation Dialog */}
-      <ConfirmDialog
-        open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-        title="Delete Account"
-        description="Are you sure you want to delete your account? This action cannot be undone. All your data including activities, sessions, and nudges will be permanently deleted."
-        confirmLabel="Delete Account"
-        cancelLabel="Cancel"
-        onConfirm={handleDeleteAccount}
-        isLoading={isDeleting}
-        variant="destructive"
+      {/* Settings Modal */}
+      <SettingsModal
+        open={showSettingsModal}
+        onOpenChange={setShowSettingsModal}
       />
     </>
   );
