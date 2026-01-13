@@ -121,7 +121,7 @@ export function SessionInput({
             <CardHeader className="space-y-4 pb-6 text-center relative">
               <button
                 onClick={handleBack}
-                className="absolute left-4 top-4 p-2 rounded-full hover:bg-accent transition-colors"
+                className="absolute left-4 top-4 p-2 rounded-full hover:bg-accent transition-colors cursor-pointer"
                 aria-label="Go back"
               >
                 <ChevronLeft className="h-5 w-5 text-muted-foreground" />
