@@ -31,7 +31,6 @@ export interface Session {
   created_at: string;
   duration_minutes?: number | null;
   mainActivity?: Activity | null;
-  fillerActivity?: Activity | null;
 }
 
 export interface SessionActivity {
@@ -44,7 +43,6 @@ export interface SessionActivity {
 
 export interface CoachSuggestion {
   mainActivity: Activity | null;
-  fillerActivity: Activity | null;
   quote: string;
   reflectionPrompt: string;
 }

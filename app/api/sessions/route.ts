@@ -167,7 +167,6 @@ export async function GET(request: NextRequest) {
                 effort_level: mainActivity.effort_level,
               }
             : null,
-          fillerActivity: null,
         };
       })
     );

@@ -7,6 +7,7 @@ import { Activity, Priority, EffortLevel } from '@/lib/types';
 import { ActivityForm } from '@/components/activities/ActivityForm';
 import { ActivityList } from '@/components/activities/ActivityList';
 import { NavHeader } from '@/components/navigation/NavHeader';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 export default function ActivitiesPage() {
   const router = useRouter();
@@ -17,6 +18,8 @@ export default function ActivitiesPage() {
   const [editingActivity, setEditingActivity] = useState<Activity | undefined>();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchActivities();
@@ -91,16 +94,19 @@ export default function ActivitiesPage() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Are you sure you want to delete this activity?')) {
-      return;
-    }
+  function handleDeleteClick(id: string) {
+    setPendingDeleteId(id);
+    setIsDeleteDialogOpen(true);
+  }
+
+  async function handleConfirmDelete() {
+    if (!pendingDeleteId) return;
 
     try {
-      setDeletingId(id);
+      setDeletingId(pendingDeleteId);
       setError(null);
 
-      const response = await fetch(`/api/activities/${id}`, {
+      const response = await fetch(`/api/activities/${pendingDeleteId}`, {
         method: 'DELETE',
       });
 
@@ -108,12 +114,26 @@ export default function ActivitiesPage() {
         throw new Error('Failed to delete activity');
       }
 
-      setActivities((prev) => prev.filter((a) => a.id !== id));
+      setActivities((prev) => prev.filter((a) => a.id !== pendingDeleteId));
+
+      // Close form if we deleted the activity we were editing
+      if (editingActivity?.id === pendingDeleteId) {
+        setShowForm(false);
+        setEditingActivity(undefined);
+      }
     } catch (error) {
       console.error('Error deleting activity:', error);
       setError('Failed to delete activity. Please try again.');
     } finally {
       setDeletingId(null);
+      setPendingDeleteId(null);
+    }
+  }
+
+  function handleDeleteDialogChange(open: boolean) {
+    setIsDeleteDialogOpen(open);
+    if (!open) {
+      setPendingDeleteId(null);
     }
   }
 
@@ -168,11 +188,7 @@ export default function ActivitiesPage() {
               activity={editingActivity}
               onSubmit={handleSubmit}
               onCancel={handleCancel}
-              onDelete={async (id) => {
-                await handleDelete(id);
-                setShowForm(false);
-                setEditingActivity(undefined);
-              }}
+              onDelete={handleDeleteClick}
               isLoading={submitting}
             />
           ) : (
@@ -185,13 +201,25 @@ export default function ActivitiesPage() {
               <ActivityList
                 activities={activities}
                 onEdit={handleEdit}
-                onDelete={handleDelete}
+                onDelete={handleDeleteClick}
                 deletingId={deletingId}
                 onAddNew={handleNewActivity}
               />
             </motion.div>
           )}
         </AnimatePresence>
+
+        <ConfirmDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={handleDeleteDialogChange}
+          title="Delete activity?"
+          description="Are you sure you want to delete this activity? This action cannot be undone."
+          confirmLabel="Delete"
+          cancelLabel="Cancel"
+          onConfirm={handleConfirmDelete}
+          isLoading={deletingId !== null}
+          variant="destructive"
+        />
       </div>
     </div>
   );

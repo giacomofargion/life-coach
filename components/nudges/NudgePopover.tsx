@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/popover';
 import { Nudge } from '@/lib/types';
 import { NudgeModal } from './NudgeModal';
-import { useNudges } from './useNudges';
+import { useNudgeContext } from './NudgeContext';
 import { NudgePanelContent } from './NudgePanelContent';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
@@ -28,7 +28,7 @@ export function NudgePopover({ children, activeCount }: NudgePopoverProps) {
   const [pendingNudgeId, setPendingNudgeId] = useState<string | null>(null);
   // Track which nudges have their checkbox checked (but not yet completed)
   const [checkedNudgeIds, setCheckedNudgeIds] = useState<Set<string>>(new Set());
-  const { nudges, isLoading } = useNudges();
+  const { nudges, isLoading, refetch } = useNudgeContext();
 
   // Filter only active nudges for display
   const activeNudges = nudges.filter(n => !n.is_completed);
@@ -70,7 +70,7 @@ export function NudgePopover({ children, activeCount }: NudgePopoverProps) {
         return newSet;
       });
 
-      window.dispatchEvent(new CustomEvent('nudgeCompleted'));
+      await refetch();
     } catch (error) {
       console.error('Error completing nudge:', error);
     } finally {
@@ -103,7 +103,7 @@ export function NudgePopover({ children, activeCount }: NudgePopoverProps) {
         return newSet;
       });
 
-      window.dispatchEvent(new CustomEvent('nudgeDeleted'));
+      await refetch();
     } catch (error) {
       console.error('Error deleting nudge:', error);
     } finally {
@@ -127,7 +127,7 @@ export function NudgePopover({ children, activeCount }: NudgePopoverProps) {
         throw new Error('Failed to create nudge');
       }
 
-      window.dispatchEvent(new CustomEvent('nudgeCreated'));
+      await refetch();
       setShowCreateModal(false);
       setOpen(false);
     } catch (error) {

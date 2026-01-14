@@ -1,51 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
+import { useNudgeContext } from './NudgeContext';
 
+/**
+ * Hook to access the active nudge count from context.
+ * Must be used within a NudgeProvider.
+ */
 export function useNudgeCount() {
-  const { data: session, status } = useSession();
-  const [activeCount, setActiveCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const fetchCount = useCallback(async () => {
-    if (status !== 'authenticated' || !session) {
-      setActiveCount(0);
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/nudges');
-      if (response.ok) {
-        const data = await response.json();
-        setActiveCount(data.activeCount || 0);
-      }
-    } catch (error) {
-      console.error('Error fetching nudge count:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [status, session, setActiveCount, setIsLoading]);
-
-  useEffect(() => {
-    fetchCount();
-
-    // Listen for all nudge change events
-    const handleNudgeChange = () => {
-      fetchCount();
-    };
-
-    window.addEventListener('nudgeCreated', handleNudgeChange);
-    window.addEventListener('nudgeCompleted', handleNudgeChange);
-    window.addEventListener('nudgeDeleted', handleNudgeChange);
-
-    return () => {
-      window.removeEventListener('nudgeCreated', handleNudgeChange);
-      window.removeEventListener('nudgeCompleted', handleNudgeChange);
-      window.removeEventListener('nudgeDeleted', handleNudgeChange);
-    };
-  }, [fetchCount]);
-
-  return { activeCount, isLoading, refetch: fetchCount };
+  const { activeCount, isLoading, refetch } = useNudgeContext();
+  return { activeCount, isLoading, refetch };
 }

@@ -26,6 +26,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { useFormSubmit } from '@/lib/hooks/useFormSubmit';
 
 const updateUsernameSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -55,22 +56,34 @@ interface SettingsModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+// Reusable alert components for consistency
+function SuccessAlert({ message }: { message: string }) {
+  return (
+    <div className="rounded-lg bg-emerald-600 border border-emerald-700 p-4 text-sm text-white font-medium">
+      {message}
+    </div>
+  );
+}
+
+function ErrorAlert({ message }: { message: string }) {
+  return (
+    <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
+      {message}
+    </div>
+  );
+}
+
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const { data: session, update } = useSession();
   const router = useRouter();
   const [activeSection, setActiveSection] = useState<'username' | 'password' | 'email' | 'delete'>('username');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [usernameError, setUsernameError] = useState<string | null>(null);
-  const [usernameSuccess, setUsernameSuccess] = useState<string | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
-  const [emailError, setEmailError] = useState<string | null>(null);
-  const [emailSuccess, setEmailSuccess] = useState<string | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [isUsernameLoading, setIsUsernameLoading] = useState(false);
-  const [isPasswordLoading, setIsPasswordLoading] = useState(false);
-  const [isEmailLoading, setIsEmailLoading] = useState(false);
+
+  // Form submit hooks for each section
+  const usernameSubmit = useFormSubmit();
+  const passwordSubmit = useFormSubmit();
+  const emailSubmit = useFormSubmit();
+  const deleteSubmit = useFormSubmit();
 
   const usernameForm = useForm<UpdateUsernameFormValues>({
     resolver: zodResolver(updateUsernameSchema),
@@ -109,127 +122,119 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   }, [open, session?.user?.name, resetUsernameForm, getUsernameFormValues]);
 
   async function handleUpdateUsername(values: UpdateUsernameFormValues) {
-    setIsUsernameLoading(true);
-    setUsernameError(null);
-    setUsernameSuccess(null);
+    await usernameSubmit.execute(
+      async () => {
+        const response = await fetch('/api/auth/update-username', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(values),
+        });
 
-    try {
-      const response = await fetch('/api/auth/update-username', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to update username');
+        }
+
+        return data;
+      },
+      {
+        successMessage: 'Username updated successfully',
+        onSuccess: async () => {
+          await update();
+          router.refresh();
         },
-        body: JSON.stringify(values),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setUsernameError(data.error || 'Failed to update username');
-        setIsUsernameLoading(false);
-        return;
       }
-
-      setUsernameSuccess('Username updated successfully');
-      // Update session to reflect new username
-      await update();
-      router.refresh();
-      setIsUsernameLoading(false);
-    } catch (error) {
-      setUsernameError('An unexpected error occurred. Please try again.');
-      setIsUsernameLoading(false);
-    }
+    );
   }
 
   async function handleUpdatePassword(values: UpdatePasswordFormValues) {
-    setIsPasswordLoading(true);
-    setPasswordError(null);
-    setPasswordSuccess(null);
+    await passwordSubmit.execute(
+      async () => {
+        const response = await fetch('/api/auth/update-password', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            currentPassword: values.currentPassword,
+            newPassword: values.newPassword,
+          }),
+        });
 
-    try {
-      const response = await fetch('/api/auth/update-password', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to update password');
+        }
+
+        return data;
+      },
+      {
+        successMessage: 'Password updated successfully',
+        onSuccess: () => {
+          passwordForm.reset();
         },
-        body: JSON.stringify({
-          currentPassword: values.currentPassword,
-          newPassword: values.newPassword,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setPasswordError(data.error || 'Failed to update password');
-        setIsPasswordLoading(false);
-        return;
       }
-
-      setPasswordSuccess('Password updated successfully');
-      passwordForm.reset();
-      setIsPasswordLoading(false);
-    } catch (error) {
-      setPasswordError('An unexpected error occurred. Please try again.');
-      setIsPasswordLoading(false);
-    }
+    );
   }
 
   async function handleUpdateEmail(values: UpdateEmailFormValues) {
-    setIsEmailLoading(true);
-    setEmailError(null);
-    setEmailSuccess(null);
+    await emailSubmit.execute(
+      async () => {
+        const response = await fetch('/api/auth/update-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(values),
+        });
 
-    try {
-      const response = await fetch('/api/auth/update-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to initiate email change');
+        }
+
+        return data;
+      },
+      {
+        successMessage: 'Verification email sent to your new email address. Please check your inbox.',
+        onSuccess: () => {
+          emailForm.reset();
         },
-        body: JSON.stringify(values),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setEmailError(data.error || 'Failed to initiate email change');
-        setIsEmailLoading(false);
-        return;
       }
-
-      setEmailSuccess('Verification email sent to your new email address. Please check your inbox.');
-      emailForm.reset();
-      setIsEmailLoading(false);
-    } catch (error) {
-      setEmailError('An unexpected error occurred. Please try again.');
-      setIsEmailLoading(false);
-    }
+    );
   }
 
   async function handleDeleteAccount() {
-    setIsDeleting(true);
-    setDeleteError(null);
-    try {
-      const response = await fetch('/api/auth/delete-account', {
-        method: 'DELETE',
-      });
+    await deleteSubmit.execute(
+      async () => {
+        const response = await fetch('/api/auth/delete-account', {
+          method: 'DELETE',
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to delete account');
+        if (!response.ok) {
+          throw new Error('Failed to delete account');
+        }
+
+        return response;
+      },
+      {
+        onSuccess: async () => {
+          await signOut({ redirect: false });
+          router.refresh();
+          router.push('/login');
+          onOpenChange(false);
+          setShowDeleteDialog(false);
+        },
       }
+    );
+  }
 
-      // Sign out and redirect to login
-      await signOut({ redirect: false });
-      router.refresh();
-      router.push('/login');
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Error deleting account:', error);
-      setDeleteError('Failed to delete account. Please try again.');
-    } finally {
-      setIsDeleting(false);
-      setShowDeleteDialog(false);
-    }
+  function handleSectionChange(sectionId: typeof activeSection) {
+    setActiveSection(sectionId);
+    // Clear all form states when switching sections
+    usernameSubmit.reset();
+    passwordSubmit.reset();
+    emailSubmit.reset();
+    deleteSubmit.reset();
   }
 
   const sections = [
@@ -262,17 +267,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                 return (
                   <button
                     key={section.id}
-                    onClick={() => {
-                      setActiveSection(section.id);
-                      // Clear errors/success when switching sections
-                      setUsernameError(null);
-                      setUsernameSuccess(null);
-                      setPasswordError(null);
-                      setPasswordSuccess(null);
-                      setEmailError(null);
-                      setEmailSuccess(null);
-                      setDeleteError(null);
-                    }}
+                    onClick={() => handleSectionChange(section.id)}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors cursor-pointer ${
                       isActive
                         ? 'bg-accent text-accent-foreground'
@@ -302,16 +297,8 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                       onSubmit={usernameForm.handleSubmit(handleUpdateUsername)}
                       className="space-y-4"
                     >
-                      {usernameSuccess && (
-                        <div className="rounded-lg bg-emerald-600 dark:bg-emerald-700 border border-emerald-700 dark:border-emerald-600 p-4 text-sm text-white font-medium">
-                          {usernameSuccess}
-                        </div>
-                      )}
-                      {usernameError && (
-                        <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
-                          {usernameError}
-                        </div>
-                      )}
+                      {usernameSubmit.success && <SuccessAlert message={usernameSubmit.success} />}
+                      {usernameSubmit.error && <ErrorAlert message={usernameSubmit.error} />}
                       <FormField
                         control={usernameForm.control}
                         name="name"
@@ -323,15 +310,15 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                                 type="text"
                                 placeholder="Your name"
                                 {...field}
-                                disabled={isUsernameLoading}
+                                disabled={usernameSubmit.isLoading}
                               />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      <Button type="submit" disabled={isUsernameLoading}>
-                        {isUsernameLoading ? 'Updating...' : 'Update Username'}
+                      <Button type="submit" disabled={usernameSubmit.isLoading}>
+                        {usernameSubmit.isLoading ? 'Updating...' : 'Update Username'}
                       </Button>
                     </form>
                   </Form>
@@ -344,7 +331,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   <div>
                     <h3 className="text-xl font-semibold mb-2">Change Password</h3>
                     <p className="text-sm text-muted-foreground">
-                      Update your password. You'll need to enter your current password.
+                      Update your password. You&apos;ll need to enter your current password.
                     </p>
                   </div>
                   <Form {...passwordForm}>
@@ -352,16 +339,8 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                       onSubmit={passwordForm.handleSubmit(handleUpdatePassword)}
                       className="space-y-4"
                     >
-                      {passwordSuccess && (
-                        <div className="rounded-lg bg-emerald-600 dark:bg-emerald-700 border border-emerald-700 dark:border-emerald-600 p-4 text-sm text-white font-medium">
-                          {passwordSuccess}
-                        </div>
-                      )}
-                      {passwordError && (
-                        <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
-                          {passwordError}
-                        </div>
-                      )}
+                      {passwordSubmit.success && <SuccessAlert message={passwordSubmit.success} />}
+                      {passwordSubmit.error && <ErrorAlert message={passwordSubmit.error} />}
                       <FormField
                         control={passwordForm.control}
                         name="currentPassword"
@@ -373,7 +352,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                                 type="password"
                                 placeholder="Enter current password"
                                 {...field}
-                                disabled={isPasswordLoading}
+                                disabled={passwordSubmit.isLoading}
                               />
                             </FormControl>
                             <FormMessage />
@@ -391,7 +370,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                                 type="password"
                                 placeholder="At least 8 characters"
                                 {...field}
-                                disabled={isPasswordLoading}
+                                disabled={passwordSubmit.isLoading}
                               />
                             </FormControl>
                             <FormMessage />
@@ -409,15 +388,15 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                                 type="password"
                                 placeholder="Confirm your new password"
                                 {...field}
-                                disabled={isPasswordLoading}
+                                disabled={passwordSubmit.isLoading}
                               />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      <Button type="submit" disabled={isPasswordLoading}>
-                        {isPasswordLoading ? 'Updating...' : 'Update Password'}
+                      <Button type="submit" disabled={passwordSubmit.isLoading}>
+                        {passwordSubmit.isLoading ? 'Updating...' : 'Update Password'}
                       </Button>
                     </form>
                   </Form>
@@ -443,16 +422,8 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                       onSubmit={emailForm.handleSubmit(handleUpdateEmail)}
                       className="space-y-4"
                     >
-                      {emailSuccess && (
-                        <div className="rounded-lg bg-emerald-600 dark:bg-emerald-700 border border-emerald-700 dark:border-emerald-600 p-4 text-sm text-white font-medium">
-                          {emailSuccess}
-                        </div>
-                      )}
-                      {emailError && (
-                        <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
-                          {emailError}
-                        </div>
-                      )}
+                      {emailSubmit.success && <SuccessAlert message={emailSubmit.success} />}
+                      {emailSubmit.error && <ErrorAlert message={emailSubmit.error} />}
                       <FormField
                         control={emailForm.control}
                         name="newEmail"
@@ -464,15 +435,15 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                                 type="email"
                                 placeholder="new@example.com"
                                 {...field}
-                                disabled={isEmailLoading}
+                                disabled={emailSubmit.isLoading}
                               />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      <Button type="submit" disabled={isEmailLoading}>
-                        {isEmailLoading ? 'Sending...' : 'Send Verification Email'}
+                      <Button type="submit" disabled={emailSubmit.isLoading}>
+                        {emailSubmit.isLoading ? 'Sending...' : 'Send Verification Email'}
                       </Button>
                     </form>
                   </Form>
@@ -488,11 +459,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                       Permanently delete your account and all associated data. This action cannot be undone.
                     </p>
                   </div>
-                  {deleteError && (
-                    <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
-                      {deleteError}
-                    </div>
-                  )}
+                  {deleteSubmit.error && <ErrorAlert message={deleteSubmit.error} />}
                   <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 space-y-4">
                     <p className="text-sm text-destructive font-medium">
                       Warning: This will permanently delete:
@@ -528,7 +495,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
         confirmLabel="Delete Account"
         cancelLabel="Cancel"
         onConfirm={handleDeleteAccount}
-        isLoading={isDeleting}
+        isLoading={deleteSubmit.isLoading}
         variant="destructive"
       />
     </>

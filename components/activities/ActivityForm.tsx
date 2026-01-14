@@ -35,7 +35,7 @@ interface ActivityFormProps {
   activity?: Activity;
   onSubmit: (data: ActivityFormValues) => Promise<void>;
   onCancel?: () => void;
-  onDelete?: (id: string) => Promise<void>;
+  onDelete?: (id: string) => void;
   isLoading?: boolean;
 }
 

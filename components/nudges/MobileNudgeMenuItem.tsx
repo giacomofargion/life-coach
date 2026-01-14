@@ -5,9 +5,10 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Bell, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NudgeModal } from '@/components/nudges/NudgeModal';
-import { useNudges } from '@/components/nudges/useNudges';
+import { useNudgeContext } from '@/components/nudges/NudgeContext';
 import type { Nudge } from '@/lib/types';
 import { NudgePanelContent } from '@/components/nudges/NudgePanelContent';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface MobileNudgeMenuItemProps {
   activeCount?: number;
@@ -22,8 +23,10 @@ export function MobileNudgeMenuItem({ activeCount = 0, className, isDarkSidebar 
   const [completingId, setCompletingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [checkedNudgeIds, setCheckedNudgeIds] = useState<Set<string>>(new Set());
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [pendingNudgeId, setPendingNudgeId] = useState<string | null>(null);
 
-  const { nudges, isLoading } = useNudges();
+  const { nudges, isLoading, refetch } = useNudgeContext();
   const activeNudges = nudges.filter((n) => !n.is_completed);
 
   function handleCheckboxChange(nudgeId: string, checked: boolean) {
@@ -53,7 +56,7 @@ export function MobileNudgeMenuItem({ activeCount = 0, className, isDarkSidebar 
         return next;
       });
 
-      window.dispatchEvent(new CustomEvent('nudgeCompleted'));
+      await refetch();
     } catch (error) {
       console.error('Error completing nudge:', error);
     } finally {
@@ -61,25 +64,38 @@ export function MobileNudgeMenuItem({ activeCount = 0, className, isDarkSidebar 
     }
   }
 
-  async function handleDelete(nudgeId: string) {
-    if (!confirm('Are you sure you want to delete this nudge?')) return;
+  function handleDelete(nudgeId: string) {
+    setPendingNudgeId(nudgeId);
+    setIsConfirmOpen(true);
+  }
 
-    setDeletingId(nudgeId);
+  async function handleConfirmDelete() {
+    if (!pendingNudgeId) return;
+
+    setDeletingId(pendingNudgeId);
     try {
-      const response = await fetch(`/api/nudges/${nudgeId}`, { method: 'DELETE' });
+      const response = await fetch(`/api/nudges/${pendingNudgeId}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Failed to delete nudge');
 
       setCheckedNudgeIds((prev) => {
         const next = new Set(prev);
-        next.delete(nudgeId);
+        next.delete(pendingNudgeId);
         return next;
       });
 
-      window.dispatchEvent(new CustomEvent('nudgeDeleted'));
+      await refetch();
     } catch (error) {
       console.error('Error deleting nudge:', error);
     } finally {
       setDeletingId(null);
+      setPendingNudgeId(null);
+    }
+  }
+
+  function handleConfirmOpenChange(newOpen: boolean) {
+    setIsConfirmOpen(newOpen);
+    if (!newOpen) {
+      setPendingNudgeId(null);
     }
   }
 
@@ -93,7 +109,7 @@ export function MobileNudgeMenuItem({ activeCount = 0, className, isDarkSidebar 
       });
       if (!response.ok) throw new Error('Failed to create nudge');
 
-      window.dispatchEvent(new CustomEvent('nudgeCreated'));
+      await refetch();
       setShowCreateModal(false);
     } finally {
       setIsCreating(false);
@@ -204,6 +220,18 @@ export function MobileNudgeMenuItem({ activeCount = 0, className, isDarkSidebar 
         onOpenChange={setShowCreateModal}
         onSubmit={handleCreate}
         isLoading={isCreating}
+      />
+
+      <ConfirmDialog
+        open={isConfirmOpen}
+        onOpenChange={handleConfirmOpenChange}
+        title="Delete nudge?"
+        description="Are you sure you want to delete this nudge? This action cannot be undone."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onConfirm={handleConfirmDelete}
+        isLoading={deletingId !== null}
+        variant="destructive"
       />
     </>
   );

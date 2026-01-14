@@ -1,45 +1,30 @@
 # Life Coach App
 
-A mindful coaching application built with Next.js, TypeScript, Tailwind CSS v4, Neon, and NextAuth.js.
+A mindful productivity app that helps users build sustainable daily practices. Instead of overwhelming todo lists, it suggests one activity at a time based on your energy level and priorities.
 
-## Getting Started
+## How It Works
 
-1. Install dependencies:
-```bash
-npm install
-```
+**1. Check in with your energy**
+Select morning or afternoon, then honestly rate your energy level (low, steady, or high).
 
-2. Set up Neon database:
-   - Create a Neon project at [https://neon.tech](https://neon.tech)
-   - Get your database connection string from the project dashboard
-   - Copy `.env.local.example` to `.env.local` and add your credentials
-   - Run the database migration (see `supabase/README.md` for details)
+**2. Get a personalized suggestion**
+The app recommends an activity from your practice list that matches your current capacity — high-priority tasks when you have energy, gentler options when you don't.
 
-3. Set up NextAuth.js:
-   - Generate a secret: `openssl rand -base64 32`
-   - Add `NEXTAUTH_SECRET` to your `.env.local` file
-   - Add `NEXTAUTH_URL=http://localhost:3000` for development
+**3. Start a focused session**
+A minimal timer helps you stay present. Buddhist-inspired quotes appear to keep the mood calm and intentional.
 
-4. Run the development server:
-```bash
-npm run dev
-```
+**4. Track your progress**
+Weekly reviews show your practice history with insights on how you've been spending your time across different priorities.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Key Features
 
-## Project Structure
+- **Energy-aware suggestions** — The algorithm respects where you are, not where you think you should be
+- **Practice library** — Create activities with priority levels (high/medium/low) and effort requirements
+- **Session timer** — Distraction-free focus mode with graceful exit options
+- **Weekly calendar view** — Visual history of your sessions with priority breakdowns
+- **Nudge reminders** — Email reminders for things you want to remember tomorrow
+- **Full account system** — Secure signup, email verification, password reset, and settings management
 
-- `app/` - Next.js App Router pages and layouts
-- `components/` - React components (UI, auth, coach, activities, history)
-- `lib/` - Utility functions, types, database clients, auth, and coaching algorithm
-- `supabase/migrations/` - Database migration files (works with Neon)
+## Built With
 
-## Tech Stack
-
-- Next.js 14+ (App Router)
-- TypeScript
-- Tailwind CSS v4
-- Shadcn UI
-- Framer Motion
-- Neon (Serverless PostgreSQL)
-- NextAuth.js (Authentication)
+Next.js 14 · TypeScript · Tailwind CSS v4 · Neon (PostgreSQL) · NextAuth.js · Framer Motion · shadcn/ui

@@ -19,7 +19,6 @@ export function selectActivities(
   if (availableActivities.length === 0) {
     return {
       mainActivity: null,
-      fillerActivity: null,
       quote: "Rest is also a practice. Sometimes the best activity is to pause.",
       reflectionPrompt: "What would it feel like to honor your current energy level?"
     }
@@ -64,7 +63,6 @@ export function selectActivities(
 
   return {
     mainActivity,
-    fillerActivity: null,
     quote,
     reflectionPrompt
   }
