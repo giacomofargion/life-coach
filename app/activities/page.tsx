@@ -22,30 +22,31 @@ export default function ActivitiesPage() {
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchActivities();
-  }, []);
-
-  async function fetchActivities() {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/activities');
-      if (!response.ok) {
-        if (response.status === 401) {
-          router.push('/login');
-          return;
+    // Fetch initial activities on mount. Kept inline so the effect dependencies stay simple.
+    async function fetchActivities() {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/activities');
+        if (!response.ok) {
+          if (response.status === 401) {
+            router.push('/login');
+            return;
+          }
+          throw new Error('Failed to fetch activities');
         }
-        throw new Error('Failed to fetch activities');
+        const data = await response.json();
+        setActivities(data.activities || []);
+        setError(null);
+      } catch (error) {
+        console.error('Error fetching activities:', error);
+        setError('Failed to load activities');
+      } finally {
+        setLoading(false);
       }
-      const data = await response.json();
-      setActivities(data.activities || []);
-      setError(null);
-    } catch (error) {
-      console.error('Error fetching activities:', error);
-      setError('Failed to load activities');
-    } finally {
-      setLoading(false);
     }
-  }
+
+    void fetchActivities();
+  }, [router]);
 
   async function handleSubmit(data: { name: string; priority: Priority; effort_level: EffortLevel }) {
     try {

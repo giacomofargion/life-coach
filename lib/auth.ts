@@ -50,8 +50,8 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   pages: {
+    // Custom sign-in page; signup is handled by our own route and page.
     signIn: '/login',
-    signUp: '/signup',
   },
   session: {
     strategy: 'jwt',
@@ -87,7 +87,11 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.name = token.name as string | undefined;
-        session.user.email = token.email as string | undefined;
+
+        // Ensure we always assign a concrete string to match our Session type augmentation
+        const emailFromToken =
+          typeof token.email === 'string' ? token.email : session.user.email;
+        session.user.email = emailFromToken;
       }
       return session;
     },

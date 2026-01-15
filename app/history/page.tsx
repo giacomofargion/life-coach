@@ -37,32 +37,35 @@ export default function HistoryPage() {
   }, [status, router]);
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      fetchSessions();
+    if (status !== 'authenticated') {
+      return;
     }
-  }, [status]);
 
-  async function fetchSessions() {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/sessions');
-      if (!response.ok) {
-        if (response.status === 401) {
-          router.push('/login');
-          return;
+    // Fetch session history once the user is authenticated.
+    async function fetchSessions() {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/sessions');
+        if (!response.ok) {
+          if (response.status === 401) {
+            router.push('/login');
+            return;
+          }
+          throw new Error('Failed to fetch sessions');
         }
-        throw new Error('Failed to fetch sessions');
+        const data = await response.json();
+        setSessions(data.sessions || []);
+        setError(null);
+      } catch (error) {
+        console.error('Error fetching sessions:', error);
+        setError('Failed to load session history');
+      } finally {
+        setLoading(false);
       }
-      const data = await response.json();
-      setSessions(data.sessions || []);
-      setError(null);
-    } catch (error) {
-      console.error('Error fetching sessions:', error);
-      setError('Failed to load session history');
-    } finally {
-      setLoading(false);
     }
-  }
+
+    void fetchSessions();
+  }, [status, router]);
 
   if (status === 'loading' || loading) {
     return (

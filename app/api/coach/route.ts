@@ -57,8 +57,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (error instanceof z.ZodError) {
+      // Zod v4 exposes validation problems via the `issues` array
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'Invalid input', details: error.issues },
         { status: 400 }
       );
     }
