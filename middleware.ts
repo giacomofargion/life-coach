@@ -29,6 +29,11 @@ export default withAuth(
           return true;
         }
 
+        // Allow nudge completion endpoints without user authentication (they use signed URLs)
+        if (pathname.startsWith('/api/nudges/') && pathname.endsWith('/complete')) {
+          return true;
+        }
+
         // Allow static files from public folder (images, fonts, etc.)
         const staticFileExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico', '.woff', '.woff2', '.ttf', '.eot'];
         const isStaticFile = staticFileExtensions.some(ext => pathname.toLowerCase().endsWith(ext));
@@ -56,6 +61,6 @@ export const config = {
        * - Static file extensions (images, fonts, etc. from public folder)
        * - login, signup, forgot-password, reset-password (public pages)
        */
-      '/((?!api/auth|api/cron|_next/static|_next/image|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.svg|.*\\.webp|.*\\.ico|.*\\.woff|.*\\.woff2|.*\\.ttf|.*\\.eot|login|signup|forgot-password|reset-password).*)',
+      '/((?!api/auth|api/cron|api/nudges/.*/complete|_next/static|_next/image|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.svg|.*\\.webp|.*\\.ico|.*\\.woff|.*\\.woff2|.*\\.ttf|.*\\.eot|login|signup|forgot-password|reset-password).*)',
     ],
 };
