@@ -91,9 +91,9 @@ export function MobileMenu() {
             }}
             className="fixed top-0 right-0 h-full w-[380px] max-w-[85vw] bg-card/95 backdrop-blur-sm border-l border-border z-[9999] shadow-2xl"
           >
-            <nav className="h-full flex flex-col overflow-y-auto p-8 pt-16 pb-24">
+            <nav className="h-full flex flex-col p-8 pt-16 pb-24 md:pb-8">
               {/* Close button in sidebar */}
-              <div className="absolute top-4 right-4 z-10">
+              <div className="absolute top-4 right-4">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -106,7 +106,7 @@ export function MobileMenu() {
               </div>
 
               {/* Navigation Items */}
-              <div className="flex flex-col gap-10 flex-1 min-h-0">
+              <div className="flex flex-col gap-10 flex-1 overflow-y-auto md:overflow-y-visible min-h-0">
                 {navItems.map((item, index) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;
@@ -167,7 +167,7 @@ export function MobileMenu() {
                   delay: (navItems.length + 1) * 0.05,
                   duration: 0.3,
                 }}
-                className="pt-6 mt-6 border-t border-border space-y-4 flex-shrink-0"
+                className="pt-6 mt-6 border-t border-border space-y-4"
               >
                 <Button
                   variant="ghost"

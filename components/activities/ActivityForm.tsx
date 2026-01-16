@@ -82,7 +82,7 @@ export function ActivityForm({
         {onCancel && (
           <button
             onClick={onCancel}
-            className="p-2 rounded-full hover:bg-primary/5 text-muted-foreground transition-colors"
+            className="p-2 rounded-full hover:bg-primary/5 text-muted-foreground transition-colors cursor-pointer"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
@@ -151,7 +151,7 @@ export function ActivityForm({
                                     htmlFor={`effort-${level}`}
                                     className={`flex items-center justify-center h-12 rounded-xl border cursor-pointer transition-all capitalize ${
                                       isSelected
-                                        ? 'border-primary bg-primary text-primary-foreground font-medium shadow-sm'
+                                        ? 'border-black bg-primary text-primary-foreground font-medium shadow-sm'
                                         : 'border-primary/10 bg-background/30 hover:bg-accent hover:border-primary/20'
                                     }`}
                                   >
@@ -201,7 +201,7 @@ export function ActivityForm({
                                     htmlFor={`priority-${level}`}
                                     className={`flex items-center justify-center h-12 rounded-xl border cursor-pointer transition-all capitalize ${
                                       isSelected
-                                        ? 'border-primary bg-primary text-primary-foreground font-medium shadow-sm'
+                                        ? 'border-black bg-primary text-primary-foreground font-medium shadow-sm'
                                         : 'border-primary/10 bg-background/30 hover:bg-accent hover:border-primary/20'
                                     }`}
                                   >

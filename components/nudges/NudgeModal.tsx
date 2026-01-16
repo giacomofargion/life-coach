@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lightbulb, Check } from 'lucide-react';
 import {
@@ -29,6 +30,45 @@ export function NudgeModal({
   const [content, setContent] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const maxLength = 150;
+  const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
+
+  // Lock body scroll when modal is open
+  React.useEffect(() => {
+    if (open) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [open]);
+
+  // Make the modal height respond to the *visual viewport* (mobile keyboard).
+  // On iOS, the keyboard often reduces visualViewport.height but not 100vh, so without this
+  // the dialog appears "covered" and can't scroll unless something inside (like the textarea) scrolls.
+  React.useEffect(() => {
+    if (!open) return;
+
+    const update = (reason: string) => {
+      const el = scrollContainerRef.current;
+      if (!el) return;
+
+      const visualHeight = window.visualViewport?.height ?? window.innerHeight;
+      el.style.setProperty('--vvh', `${visualHeight}px`);
+    };
+
+    update('open');
+    const onResize = () => update('window-resize');
+    const onVvResize = () => update('visualViewport-resize');
+
+    window.addEventListener('resize', onResize);
+    window.visualViewport?.addEventListener('resize', onVvResize);
+
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.visualViewport?.removeEventListener('resize', onVvResize);
+    };
+  }, [open]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -61,16 +101,26 @@ export function NudgeModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md rounded-2xl border-none shadow-2xl bg-card/95 backdrop-blur-sm p-8">
-        <AnimatePresence mode="wait">
-          {!isSuccess ? (
-            <motion.div
-              key="form"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.3 }}
-            >
+      <DialogContent
+        // On mobile, anchor the dialog near the top so it's not centered behind the keyboard.
+        className="sm:max-w-md rounded-2xl border-none shadow-2xl bg-card/95 backdrop-blur-sm p-0 flex flex-col max-h-[90vh] top-4 translate-y-0 md:top-[50%] md:translate-y-[-50%]"
+        // Use dvh/visual viewport when available; fallback is 90vh from base.
+        style={{ maxHeight: 'calc(var(--vvh, 100vh) - 2rem)' }}
+      >
+        <div
+          ref={scrollContainerRef}
+          className="overflow-y-auto overscroll-contain touch-pan-y flex-1 min-h-0 p-8"
+          style={{ maxHeight: 'calc(var(--vvh, 100vh) - 2rem)' }}
+        >
+          <AnimatePresence mode="wait">
+            {!isSuccess ? (
+              <motion.div
+                key="form"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3 }}
+              >
               <DialogHeader className="space-y-4 text-center pb-4">
                 <motion.div
                   initial={{ scale: 0, rotate: -10 }}
@@ -141,9 +191,10 @@ export function NudgeModal({
               <DialogDescription className="text-center text-muted-foreground">
                 You&apos;ll receive a gentle reminder tomorrow at 8am.
               </DialogDescription>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </DialogContent>
     </Dialog>
   );
