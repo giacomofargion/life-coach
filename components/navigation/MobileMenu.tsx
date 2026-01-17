@@ -106,7 +106,7 @@ export function MobileMenu() {
               </div>
 
               {/* Navigation Items */}
-              <div className="flex flex-col gap-10 flex-1 overflow-y-auto md:overflow-y-visible min-h-0">
+              <div className="flex flex-col gap-10 flex-1 overflow-y-auto min-h-0">
                 {navItems.map((item, index) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;
