@@ -1,5 +1,5 @@
-import { Resend } from 'resend';
 import { Nudge } from '@/lib/types';
+import { sendTransactionalEmail } from '@/lib/email/brevo';
 import { generateCompletionUrl } from './email';
 
 /**
@@ -17,14 +17,6 @@ function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (char) => map[char]);
 }
 
-function getResendClient(): Resend {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    throw new Error('RESEND_API_KEY environment variable is not set');
-  }
-  return new Resend(apiKey);
-}
-
 /**
  * Send nudge reminder email to a user with all their active nudges
  */
@@ -36,13 +28,6 @@ export async function sendNudgeEmail(
 ): Promise<void> {
   if (nudges.length === 0) {
     return; // No nudges to send
-  }
-
-  const resend = getResendClient();
-  const fromEmail = process.env.RESEND_FROM_EMAIL;
-
-  if (!fromEmail) {
-    throw new Error('RESEND_FROM_EMAIL environment variable is not set');
   }
 
   const displayName = userName || 'there';
@@ -60,9 +45,9 @@ export async function sendNudgeEmail(
   const emailHtml = createEmailTemplate(displayName, nudgeItems, baseUrl);
 
   try {
-    await resend.emails.send({
-      from: fromEmail,
-      to: userEmail,
+    await sendTransactionalEmail({
+      toEmail: userEmail,
+      toName: userName ?? undefined,
       subject: nudges.length === 1
         ? `${displayName}, a gentle nudge from your coach`
         : `${displayName}, ${nudges.length} gentle nudges from your coach`,
