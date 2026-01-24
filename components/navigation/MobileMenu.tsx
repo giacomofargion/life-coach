@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation';
-import { Menu, X, LogOut, Settings } from 'lucide-react';
+import { Menu, X, LogOut, Settings, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
@@ -12,11 +12,19 @@ import { navItems } from '@/components/navigation/navItems';
 import { MobileNudgeMenuItem } from '@/components/nudges/MobileNudgeMenuItem';
 import { useNudgeCount } from '@/components/nudges/useNudgeCount';
 import { SettingsModal } from '@/components/settings/SettingsModal';
+import { AboutModal } from '@/components/about/AboutModal';
 
 export function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
+  const overflowSnapshotRef = useRef<{
+    body: string;
+    bodyX: string;
+    docX: string;
+  } | null>(null);
+  const closeRequestedRef = useRef(false);
   const router = useRouter();
   const pathname = usePathname();
   const { activeCount } = useNudgeCount();
@@ -30,13 +38,23 @@ export function MobileMenu() {
   useEffect(() => {
     if (isOpen) {
       // Save the original overflow value
-      const originalOverflow = document.body.style.overflow;
+      const originalOverflow = overflowSnapshotRef.current?.body ?? document.body.style.overflow;
+      const originalOverflowX = overflowSnapshotRef.current?.bodyX ?? document.body.style.overflowX;
+      const originalDocOverflowX = overflowSnapshotRef.current?.docX ?? document.documentElement.style.overflowX;
       // Lock scroll
       document.body.style.overflow = 'hidden';
+      document.body.style.overflowX = 'hidden';
+      document.documentElement.style.overflowX = 'clip';
 
       // Cleanup function to restore original overflow
       return () => {
+        if (closeRequestedRef.current) {
+          return;
+        }
         document.body.style.overflow = originalOverflow;
+        document.body.style.overflowX = originalOverflowX;
+        document.documentElement.style.overflowX = originalDocOverflowX;
+        overflowSnapshotRef.current = null;
       };
     }
   }, [isOpen]);
@@ -45,25 +63,55 @@ export function MobileMenu() {
     await signOut({ redirect: false });
     router.refresh();
     router.push('/login');
-    setIsOpen(false);
+    handleClose();
   }
 
   function handleSettingsClick() {
     setShowSettingsModal(true);
-    setIsOpen(false);
+    handleClose();
+  }
+
+  function handleAboutClick() {
+    setShowAboutModal(true);
+    handleClose();
   }
 
   function handleLinkClick() {
-    setIsOpen(false);
+    handleClose();
+  }
+
+  function handleToggleClick() {
+    if (!isOpen && !overflowSnapshotRef.current) {
+      overflowSnapshotRef.current = {
+        body: document.body.style.overflow,
+        bodyX: document.body.style.overflowX,
+        docX: document.documentElement.style.overflowX,
+      };
+      document.body.style.overflow = 'hidden';
+      document.body.style.overflowX = 'hidden';
+      document.documentElement.style.overflowX = 'clip';
+    }
+    if (isOpen) {
+      closeRequestedRef.current = true;
+    }
+    setIsOpen(!isOpen);
   }
 
   function handleBackdropClick() {
+    handleClose();
+  }
+
+  function handleClose() {
+    closeRequestedRef.current = true;
     setIsOpen(false);
   }
 
   // Render backdrop and sidebar via portal to escape stacking context issues
   const sidebarContent = (
-    <>
+    <div
+      data-mobile-overlay="true"
+      className="fixed inset-0 overflow-x-clip z-9998"
+    >
       {/* Backdrop */}
       <AnimatePresence>
         {isOpen && (
@@ -72,7 +120,7 @@ export function MobileMenu() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[9998]"
+            className="absolute inset-0 bg-background/80 backdrop-blur-sm z-9998 pointer-events-auto"
             onClick={handleBackdropClick}
           />
         )}
@@ -89,7 +137,17 @@ export function MobileMenu() {
               duration: 0.4,
               ease: [0.4, 0, 0.2, 1],
             }}
-            className="fixed top-0 right-0 h-full w-[380px] max-w-[85vw] bg-card/95 backdrop-blur-sm border-l border-border z-[9999] shadow-2xl"
+            data-mobile-sidebar="true"
+            onAnimationComplete={() => {
+              if (!isOpen && closeRequestedRef.current && overflowSnapshotRef.current) {
+                document.body.style.overflow = overflowSnapshotRef.current.body;
+                document.body.style.overflowX = overflowSnapshotRef.current.bodyX;
+                document.documentElement.style.overflowX = overflowSnapshotRef.current.docX;
+                closeRequestedRef.current = false;
+                overflowSnapshotRef.current = null;
+              }
+            }}
+            className="absolute top-0 right-0 h-full w-[380px] max-w-[85vw] bg-card/95 backdrop-blur-sm border-l border-border z-9999 shadow-2xl pointer-events-auto"
           >
             <nav className="h-full flex flex-col p-8 pt-16 pb-24 md:pb-8">
               {/* Close button in sidebar */}
@@ -106,7 +164,7 @@ export function MobileMenu() {
               </div>
 
               {/* Navigation Items */}
-              <div className="flex flex-col gap-10 flex-1 overflow-y-auto min-h-0">
+              <div className="flex flex-col gap-4 flex-1 overflow-y-auto min-h-0">
                 {navItems.map((item, index) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;
@@ -121,7 +179,7 @@ export function MobileMenu() {
                       }}
                     >
                       <Link href={item.href} onClick={handleLinkClick}>
-                        <div className={`flex items-center gap-6 px-6 py-5 text-card-foreground transition-colors rounded-lg group ${
+                        <div className={`flex items-center gap-4 px-5 py-3 text-card-foreground transition-colors rounded-lg group ${
                           isActive
                             ? 'bg-accent text-accent-foreground'
                             : 'hover:bg-accent hover:text-accent-foreground'
@@ -132,8 +190,8 @@ export function MobileMenu() {
                           {!isActive && (
                             <div className="w-2 h-2 bg-transparent" />
                           )}
-                          <Icon className="h-6 w-6" />
-                          <span className="text-xl font-medium uppercase tracking-wide">
+                          <Icon className="h-5 w-5" />
+                          <span className="text-base font-medium uppercase tracking-wide">
                             {item.label}
                           </span>
                         </div>
@@ -167,23 +225,32 @@ export function MobileMenu() {
                   delay: (navItems.length + 1) * 0.05,
                   duration: 0.3,
                 }}
-                className="pt-6 mt-6 border-t border-border space-y-4"
+                className="pt-4 mt-4 border-t border-border space-y-3"
               >
                 <Button
                   variant="ghost"
-                  onClick={handleSettingsClick}
-                  className="w-full justify-start gap-4 px-6 py-5 h-auto text-xl font-medium uppercase tracking-wide hover:bg-accent hover:text-accent-foreground"
+                  onClick={handleAboutClick}
+                  className="w-full justify-start gap-3 px-5 py-3 h-auto text-base font-medium uppercase tracking-wide hover:bg-accent hover:text-accent-foreground"
                 >
-                  <Settings className="h-6 w-6" />
+                  <Info className="h-5 w-5" />
+                  <span>About</span>
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  onClick={handleSettingsClick}
+                  className="w-full justify-start gap-3 px-5 py-3 h-auto text-base font-medium uppercase tracking-wide hover:bg-accent hover:text-accent-foreground"
+                >
+                  <Settings className="h-5 w-5" />
                   <span>Settings</span>
                 </Button>
 
                 <Button
                   variant="ghost"
                   onClick={handleLogout}
-                  className="w-full justify-start gap-4 px-6 py-5 h-auto text-xl font-medium uppercase tracking-wide text-destructive hover:bg-accent hover:text-destructive"
+                  className="w-full justify-start gap-3 px-5 py-3 h-auto text-base font-medium uppercase tracking-wide text-destructive hover:bg-accent hover:text-destructive"
                 >
-                  <LogOut className="h-6 w-6" />
+                  <LogOut className="h-5 w-5" />
                   <span>Sign out</span>
                 </Button>
               </motion.div>
@@ -191,7 +258,7 @@ export function MobileMenu() {
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </div>
   );
 
   // Hamburger button - always visible in top-right corner
@@ -199,9 +266,9 @@ export function MobileMenu() {
     <Button
       variant="ghost"
       size="icon"
-      onClick={() => setIsOpen(!isOpen)}
+      onClick={handleToggleClick}
       className={`fixed top-4 right-4 pointer-events-auto bg-background/80 backdrop-blur-sm hover:bg-background/90 h-12 w-12 ${
-        isOpen ? 'z-[10001]' : 'z-[10000]'
+        isOpen ? 'z-10001' : 'z-10000'
       }`}
       aria-label="Toggle menu"
       aria-expanded={isOpen}
@@ -248,6 +315,12 @@ export function MobileMenu() {
       <SettingsModal
         open={showSettingsModal}
         onOpenChange={setShowSettingsModal}
+      />
+
+      {/* About Modal */}
+      <AboutModal
+        open={showAboutModal}
+        onOpenChange={setShowAboutModal}
       />
     </>
   );

@@ -151,7 +151,7 @@ export function NudgeModal({
                     className="min-h-[100px] resize-none rounded-xl bg-background/50 border-none focus-visible:ring-primary/20 text-base font-serif"
                   />
                   <div className="flex justify-between items-center text-xs text-muted-foreground px-1">
-                    <span>Keep it simple and casual</span>
+                    <span>You&apos;ll receive a gentle reminder tomorrow morning via email.</span>
                     <span className={content.length > maxLength - 10 ? 'text-destructive' : ''}>
                       {content.length}/{maxLength}
                     </span>

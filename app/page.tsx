@@ -220,7 +220,10 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
-            <NavHeader title="Life Coach App" />
+            <NavHeader
+              title="Life Coach App"
+              subtitle="Plan mindful sessions, track activities, and stay on track with gentle reminders"
+            />
           </motion.div>
         )}
       </div>
