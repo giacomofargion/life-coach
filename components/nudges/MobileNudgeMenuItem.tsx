@@ -127,7 +127,7 @@ export function MobileNudgeMenuItem({ activeCount = 0, className, isDarkSidebar 
       <div className="w-full">
         {isDarkSidebar ? (
           <div
-            className="flex items-center gap-4 px-6 py-5 text-card-foreground hover:bg-accent hover:text-accent-foreground transition-colors rounded-lg group cursor-pointer"
+            className="flex items-center gap-4 px-5 py-3 text-card-foreground hover:bg-accent hover:text-accent-foreground transition-colors rounded-lg group cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               setOpen((prev) => {
@@ -139,12 +139,12 @@ export function MobileNudgeMenuItem({ activeCount = 0, className, isDarkSidebar 
             aria-expanded={open}
           >
             <div className="w-2 h-2 bg-transparent" />
-            <Bell className="h-6 w-6 flex-shrink-0" />
-            <span className="flex-1 text-left text-xl font-medium uppercase tracking-wide">
+            <Bell className="h-5 w-5 shrink-0" />
+            <span className="flex-1 text-left text-base font-medium uppercase tracking-wide">
               Need a Nudge?
             </span>
             <ChevronDown
-              className={`h-5 w-5 opacity-70 transition-transform ${open ? 'rotate-180' : ''}`}
+              className={`h-4 w-4 opacity-70 transition-transform ${open ? 'rotate-180' : ''}`}
               style={{ pointerEvents: 'none' }}
             />
             {activeCount > 0 && (
@@ -167,7 +167,7 @@ export function MobileNudgeMenuItem({ activeCount = 0, className, isDarkSidebar 
             }}
             aria-expanded={open}
           >
-            <Bell className="h-5 w-5 flex-shrink-0" />
+          <Bell className="h-5 w-5 shrink-0" />
             <span className="flex-1 text-left">Need a Nudge?</span>
             <ChevronDown
               className={`h-4 w-4 opacity-70 transition-transform ${open ? 'rotate-180' : ''}`}

@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@getbrevo/brevo": "^3.0.1",
     "@hookform/resolvers": "^5.2.2",
     "@neondatabase/serverless": "^0.9.0",
     "@radix-ui/react-checkbox": "^1.1.2",
@@ -29,7 +30,6 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.70.0",
-    "resend": "^3.2.0",
     "tailwind-merge": "^2.2.1",
     "zod": "^4.3.5"
   },
