@@ -1,4 +1,8 @@
-import { SendSmtpEmail, TransactionalEmailsApi } from '@getbrevo/brevo';
+import {
+  SendSmtpEmail,
+  TransactionalEmailsApi,
+  TransactionalEmailsApiApiKeys,
+} from '@getbrevo/brevo';
 
 type BrevoSender = {
   name: string;
@@ -20,7 +24,7 @@ function getBrevoApi(): TransactionalEmailsApi {
   }
 
   const api = new TransactionalEmailsApi();
-  api.authentications.apiKey.apiKey = apiKey;
+  api.setApiKey(TransactionalEmailsApiApiKeys.apiKey, apiKey);
 
   return api;
 }
