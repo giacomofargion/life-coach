@@ -108,13 +108,17 @@ export function MobileMenu() {
 
   // Render backdrop and sidebar via portal to escape stacking context issues
   const sidebarContent = (
-    <div
-      data-mobile-overlay="true"
-      className="fixed inset-0 overflow-x-clip z-9998"
-    >
-      {/* Backdrop */}
-      <AnimatePresence>
-        {isOpen && (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          key="mobile-overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          data-mobile-overlay="true"
+          className="fixed inset-0 overflow-x-clip z-9998"
+        >
+          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -123,12 +127,8 @@ export function MobileMenu() {
             className="absolute inset-0 bg-background/80 backdrop-blur-sm z-9998 pointer-events-auto"
             onClick={handleBackdropClick}
           />
-        )}
-      </AnimatePresence>
 
-      {/* Sidebar Panel */}
-      <AnimatePresence>
-        {isOpen && (
+          {/* Sidebar Panel */}
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
@@ -256,9 +256,9 @@ export function MobileMenu() {
               </motion.div>
             </nav>
           </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 
   // Hamburger button - always visible in top-right corner
