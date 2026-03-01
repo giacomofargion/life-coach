@@ -3,7 +3,7 @@ import "./globals.css";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 
 export const metadata: Metadata = {
-  title: "Nudge Me Gengtly",
+  title: "Nudge Me Gently",
   description: "A mindful coaching application",
   icons: {
     icon: "/favicon.ico",
